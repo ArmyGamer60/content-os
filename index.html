@@ -61,12 +61,12 @@
     };
 
     const firebaseConfig = {
-  apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
-  authDomain: "content-os-97b63.firebaseapp.com",
-  projectId: "content-os-97b63",
-  storageBucket: "content-os-97b63.firebasestorage.app",
-  messagingSenderId: "707594487675",
-  appId: "1:707594487675:web:fd98225e864bea56025fde"
+      apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
+      authDomain: "content-os-97b63.firebaseapp.com",
+      projectId: "content-os-97b63",
+      storageBucket: "content-os-97b63.firebasestorage.app",
+      messagingSenderId: "707594487675",
+      appId: "1:707594487675:web:fd98225e864bea56025fde"
     };
 
     // ========================================
@@ -156,27 +156,28 @@
         return;
       }
       try {
-        console.log('🔐 Intentando login...');
+        console.log('🔐 Intentando login con redirect...');
         const provider = new firebase.auth.GoogleAuthProvider();
-        // Intenta popup primero, luego redirect
-        try {
-          await auth.signInWithPopup(provider);
-        } catch (popupErr) {
-          console.warn('Popup bloqueado, usando redirect...');
-          await auth.signInWithRedirect(provider);
-        }
+        await auth.signInWithRedirect(provider);
       } catch (e) {
         console.error('❌ Error login:', e);
         alert('Error: ' + e.message);
       }
     };
 
-    // Verificar si volvemos de un redirect
-    auth?.getRedirectResult?.().then(result => {
-      if (result?.user) {
-        console.log('✅ Regresamos de redirect, usuario:', result.user.email);
-      }
-    });
+    // Verificar resultado de redirect
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      firebase.auth().getRedirectResult().then(result => {
+        if (result?.user) {
+          console.log('✅ Login exitoso via redirect:', result.user.email);
+          state.user = result.user;
+          render();
+          escuchar();
+        }
+      }).catch(err => {
+        console.error('Error en redirect:', err);
+      });
+    }
 
     window.logout = async () => {
       await auth.signOut();
