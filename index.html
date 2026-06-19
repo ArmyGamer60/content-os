@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Content OS</title>
+  <title>Content OS - Colaboración en tiempo real</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,19 +11,54 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; color: #1e293b; background: #f4f6f9; }
+    select { appearance: none; -webkit-appearance: none; }
+    option { background: #fff; color: #1e293b; font-weight: 500; }
+    ::-webkit-scrollbar { height: 11px; width: 11px; }
+    ::-webkit-scrollbar-thumb { background: #cdd6e2; border-radius: 7px; border: 3px solid #f4f6f9; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body>
   <div id="app"></div>
 
+  <!-- Firebase Compat -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // VARIABLES GLOBALES - DECLARADAS PRIMERO
+    // ========================================
+    // VARIABLES GLOBALES
+    // ========================================
     let app, auth, db;
-    let state = { user: null, active: 'calendar', calendar: [], production: [], reports: [], ads: [] };
+    let state = {
+      user: null,
+      active: 'dashboard',
+      month: 'Junio',
+      year: '2026',
+      clientFilter: 'Todos',
+      f1: '',
+      f2: '',
+      demoOn: false,
+      calView: 'table',
+      ganttMode: 'month',
+      ganttAllExpanded: false,
+      ganttExpanded: {},
+      anGroupBy: { reports: 'cliente', ads: 'plataforma' },
+      anMetric: { reports: 'alcance', ads: 'gasto' },
+      anChart: { reports: 'bar', ads: 'bar' },
+      anFilters: { reports: {}, ads: {} },
+      config: [],
+      inspo: [],
+      prompts: [],
+      calendar: [],
+      production: [],
+      approvals: [],
+      assets: [],
+      reports: [],
+      ads: []
+    };
 
     const firebaseConfig = {
   apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
@@ -34,9 +69,35 @@
   appId: "1:707594487675:web:fd98225e864bea56025fde"
 };
 
-    console.log('📄 Página cargó');
+    // ========================================
+    // CONSTANTES
+    // ========================================
+    const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const YEARS = ['2025', '2026', '2027'];
+    const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'YouTube', 'Shorts'];
+    const FORMATS = ['Reel', 'Carrusel', 'Historia', 'Estática', 'Video', 'Short'];
+    const CAL_STATES = ['Idea', 'Inspiración', 'Contenido', 'Producción', 'Aprobación', 'Correcciones', 'Aprobado', 'Programado', 'Publicado'];
+    const PRIORITY = ['Alta', 'Media', 'Baja'];
+    const COLORS = {
+      'Idea': ['#eef2f7', '#475569'],
+      'Inspiración': ['#f5f3ff', '#7c3aed'],
+      'Contenido': ['#e0f2fe', '#0369a1'],
+      'Producción': ['#eef2ff', '#4f46e5'],
+      'Aprobación': ['#ffedd5', '#c2410c'],
+      'Correcciones': ['#fee2e2', '#b91c1c'],
+      'Aprobado': ['#dcfce7', '#15803d'],
+      'Programado': ['#ccfbf1', '#0f766e'],
+      'Publicado': ['#dbeafe', '#1d4ed8'],
+      'Alta': ['#fee2e2', '#b91c1c'],
+      'Media': ['#fef3c7', '#b45309'],
+      'Baja': ['#dcfce7', '#15803d']
+    };
 
-    // ESPERAR FIREBASE
+    console.log('📄 Content OS cargó');
+
+    // ========================================
+    // INICIALIZAR FIREBASE
+    // ========================================
     let intentos = 0;
     function esperar() {
       intentos++;
@@ -50,10 +111,9 @@
     }
     esperar();
 
-    // INICIALIZAR
     function iniciar() {
       try {
-        console.log('Inicializando...');
+        console.log('🔥 Inicializando Firebase...');
         if (!firebase.apps.length) {
           app = firebase.initializeApp(firebaseConfig);
         }
@@ -62,7 +122,7 @@
         console.log('✅ Firebase OK');
         
         auth.onAuthStateChanged(user => {
-          console.log('Usuario:', user?.email || 'anónimo');
+          console.log('👤 Usuario:', user?.email || 'anónimo');
           state.user = user;
           render();
           if (user) escuchar();
@@ -73,18 +133,23 @@
       }
     }
 
+    // ========================================
     // FIRESTORE LISTENER
+    // ========================================
     function escuchar() {
-      ['calendar', 'production', 'reports', 'ads'].forEach(col => {
+      ['config', 'calendar', 'production', 'approvals', 'reports', 'ads'].forEach(col => {
         db.collection(col).onSnapshot(snap => {
           state[col] = [];
           snap.forEach(doc => state[col].push({ _id: doc.id, ...doc.data() }));
+          console.log(`✓ ${col} actualizado: ${state[col].length} filas`);
           render();
         });
       });
     }
 
+    // ========================================
     // ACCIONES
+    // ========================================
     window.login = async () => {
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -99,17 +164,24 @@
     };
 
     window.addRow = async () => {
-      if (!state.user) return;
+      if (!state.user || !db) return;
       try {
-        await db.collection(state.active).add({ createdAt: new Date(), createdBy: state.user.email });
+        const tab = state.active;
+        const data = { createdAt: new Date(), createdBy: state.user.email };
+        await db.collection(tab).add(data);
       } catch (e) {
         alert('Error: ' + e.message);
       }
     };
 
     window.updateCell = async (id, field, value) => {
+      if (!db) return;
       try {
-        await db.collection(state.active).doc(id).update({ [field]: value });
+        await db.collection(state.active).doc(id).update({
+          [field]: value,
+          updatedAt: new Date(),
+          updatedBy: state.user?.email
+        });
       } catch (e) {
         console.error(e);
       }
@@ -120,7 +192,9 @@
       render();
     };
 
+    // ========================================
     // RENDER
+    // ========================================
     function render() {
       const app = document.getElementById('app');
       if (!app) return;
@@ -133,7 +207,7 @@
               <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f1f3d;">Content OS</h1>
               <p style="margin:0 0 32px;font-size:14px;color:#64748b;">Colaboración en tiempo real</p>
               <button onclick="window.login()" style="width:100%;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;">Inicia con Google</button>
-              <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Todos ven los mismos datos</p>
+              <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Todos ven los mismos datos en vivo</p>
             </div>
           </div>
         `;
@@ -141,11 +215,20 @@
       }
 
       const rows = state[state.active];
-      const tabs = { calendar: 'Calendario', production: 'Producción', reports: 'Reportes', ads: 'Ads' };
-      const counts = { calendar: state.calendar.length, production: state.production.length, reports: state.reports.length, ads: state.ads.length };
+      const navItems = [
+        { key: 'dashboard', label: 'Dashboard', d: 'M4 4h6v6H4zM14 4h6v6h-6zM14 14h6v6h-6zM4 14h6v6H4z' },
+        { key: 'config', label: 'Estrategia del Mes', d: 'M12 3a9 9 0 100 18 9 9 0 000-18z' },
+        { key: 'calendar', label: 'Calendario', d: 'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4' },
+        { key: 'production', label: 'Producción', d: 'M4 7h16v13H4zM16 10l4-2.5v9L16 14' },
+        { key: 'approvals', label: 'Aprobaciones', d: 'M12 3a9 9 0 100 18 9 9 0 000-18z' },
+        { key: 'reports', label: 'Reportes', d: 'M4 20V11M9.5 20V5M15 20v-6M20.5 20V8M3 20h18' },
+        { key: 'ads', label: 'Ads / Pauta', d: 'M3 10v4h3l5 4V6L6 10H3zM15 9a3 3 0 010 6M18 6a7 7 0 010 12' }
+      ];
+
+      const clientOptions = ['Todos', ...new Set(state.config.map(r => r.cliente).filter(Boolean))];
 
       app.innerHTML = `
-        <div style="display:flex;height:100vh;overflow:hidden;">
+        <div style="display:flex;height:100vh;width:100%;overflow:hidden;">
           <aside style="width:236px;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
             <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.1);">
               <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;">C</div>
@@ -155,11 +238,12 @@
               </div>
             </div>
 
-            <nav style="flex:1;margin-top:14px;">
-              ${Object.keys(tabs).map(tab => `
-                <button onclick="window.switchTab('${tab}')" style="display:flex;gap:11px;width:100%;padding:9px 11px;margin-bottom:3px;border-radius:9px;border:none;background:${state.active === tab ? 'rgba(255,255,255,.08)' : 'transparent'};color:${state.active === tab ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
-                  ${tabs[tab]}
-                  <span style="margin-left:auto;background:${state.active === tab ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)'};border-radius:6px;padding:3px 7px;font-size:10px;">${counts[tab]}</span>
+            <nav style="flex:1;margin-top:14px;display:flex;flex-direction:column;gap:3px;">
+              ${navItems.map(n => `
+                <button onclick="window.switchTab('${n.key}')" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;border:none;background:${state.active === n.key ? 'rgba(255,255,255,.08)' : 'transparent'};color:${state.active === n.key ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="${n.d}"></path></svg>
+                  <span>${n.label}</span>
+                  <span style="margin-left:auto;background:${state.active === n.key ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)'};border-radius:6px;padding:3px 7px;font-size:10px;">${state[n.key]?.length || 0}</span>
                 </button>
               `).join('')}
             </nav>
@@ -170,29 +254,51 @@
           <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
             <header style="height:66px;background:#fff;border-bottom:1px solid #e8edf3;display:flex;align-items:center;padding:0 26px;gap:18px;">
               <div style="flex:1;">
-                <div style="font-size:18px;font-weight:700;color:#0f1f3d;">${tabs[state.active]}</div>
+                <div style="font-size:18px;font-weight:700;color:#0f1f3d;">${navItems.find(n => n.key === state.active)?.label}</div>
                 <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;">Todos ven lo mismo en vivo</div>
               </div>
-              <button onclick="window.addRow()" style="background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Nueva fila</button>
+              
+              <div style="display:flex;align-items:center;gap:9px;">
+                <select value="${state.month}" onchange="state.month = this.value; render();" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;">
+                  ${MONTHS.map(m => `<option>${m}</option>`).join('')}
+                </select>
+                
+                <select value="${state.year}" onchange="state.year = this.value; render();" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;">
+                  ${YEARS.map(y => `<option>${y}</option>`).join('')}
+                </select>
+
+                <select value="${state.clientFilter}" onchange="state.clientFilter = this.value; render();" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;">
+                  ${clientOptions.map(c => `<option>${c}</option>`).join('')}
+                </select>
+
+                ${state.active !== 'dashboard' ? `<button onclick="window.addRow()" style="background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Nueva fila</button>` : ''}
+              </div>
             </header>
 
             <div style="flex:1;overflow:auto;padding:24px 26px;">
-              <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;">
-                <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} filas</div>
-                <div style="overflow:auto;">
-                  <table style="width:100%;border-collapse:collapse;">
-                    <tbody>
-                      ${rows.map(row => `
-                        <tr style="border-bottom:1px solid #f1f4f8;">
-                          <td style="padding:12px 18px;width:130px;"><input type="date" value="${row.fecha || ''}" onchange="window.updateCell('${row._id}', 'fecha', this.value)" style="border:none;background:0;font:inherit;outline:none;width:100%;" /></td>
-                          <td style="padding:12px 18px;width:120px;"><input type="text" value="${row.plataforma || ''}" onchange="window.updateCell('${row._id}', 'plataforma', this.value)" placeholder="Plataforma" style="border:none;background:0;font:inherit;outline:none;width:100%;" /></td>
-                          <td style="padding:12px 18px;flex:1;"><input type="text" value="${row.contenido || ''}" onchange="window.updateCell('${row._id}', 'contenido', this.value)" placeholder="Contenido" style="border:none;background:0;font:inherit;outline:none;width:100%;" /></td>
-                          <td style="padding:12px 18px;width:140px;"><select onchange="window.updateCell('${row._id}', 'estado', this.value)" style="border:none;background:0;font:inherit;outline:none;width:100%;"><option>—</option><option ${row.estado === 'Idea' ? 'selected' : ''}>Idea</option><option ${row.estado === 'Prod' ? 'selected' : ''}>Prod</option><option ${row.estado === 'Aprobación' ? 'selected' : ''}>Aprobación</option><option ${row.estado === 'Publicado' ? 'selected' : ''}>Publicado</option></select></td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                  </table>
-                </div>
+              <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;">
+                <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} ${rows.length === 1 ? 'fila' : 'filas'}</div>
+                
+                ${rows.length === 0 ? `
+                  <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+                    No hay filas todavía. Usa "+ Nueva fila" para comenzar.
+                  </div>
+                ` : `
+                  <div style="overflow:auto;">
+                    <table style="width:100%;border-collapse:collapse;">
+                      <tbody>
+                        ${rows.map((row, i) => `
+                          <tr style="border-bottom:1px solid #f1f4f8;${i % 2 === 0 ? 'background:#fafbfd;' : ''}">
+                            <td style="padding:12px 18px;flex:1;width:130px;"><input type="date" value="${row.fecha || ''}" onchange="window.updateCell('${row._id}', 'fecha', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
+                            <td style="padding:12px 18px;flex:1;width:120px;"><input type="text" value="${row.plataforma || ''}" onchange="window.updateCell('${row._id}', 'plataforma', this.value)" placeholder="Plataforma" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
+                            <td style="padding:12px 18px;flex:1;width:260px;"><input type="text" value="${row.contenido || row.nombre || row.cliente || ''}" onchange="window.updateCell('${row._id}', '${row.contenido !== undefined ? 'contenido' : (row.nombre !== undefined ? 'nombre' : 'cliente')}', this.value)" placeholder="Contenido" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
+                            <td style="padding:12px 18px;flex:1;width:140px;"><select onchange="window.updateCell('${row._id}', 'estado', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;outline:none;cursor:pointer;"><option value="">—</option>${(state.active === 'calendar' ? CAL_STATES : PRIORITY).map(s => `<option value="${s}" ${row.estado === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                `}
               </div>
             </div>
           </main>
