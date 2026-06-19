@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content OS - Colaboración en tiempo real</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: #1e293b; background: #f4f6f9; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // ========================================
+    // CONFIGURACIÓN FIREBASE
+    // ========================================
+    // REEMPLAZA ESTO CON TU firebaseConfig
+    const firebaseConfig = {
+  apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
+  authDomain: "content-os-97b63.firebaseapp.com",
+  projectId: "content-os-97b63",
+  storageBucket: "content-os-97b63.firebasestorage.app",
+  messagingSenderId: "707594487675",
+  appId: "1:707594487675:web:fd98225e864bea56025fde"
+};
+
+    // ========================================
+    // INICIALIZAR FIREBASE
+    // ========================================
+    let auth, db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+      console.log('✅ Firebase inicializado');
+    } catch (err) {
+      console.error('❌ Error Firebase:', err);
+    }
+
+    // ========================================
+    // ESTADO GLOBAL
+    // ========================================
+    let state = {
+      user: null,
+      active: 'calendar',
+      syncing: false,
+      calendar: [],
+      production: [],
+      reports: [],
+      ads: []
+    };
+
+    // ========================================
+    // LOGIN
+    // ========================================
+    auth.onAuthStateChanged(user => {
+      state.user = user;
+      render();
+      if (user) {
+        setupSync();
+      }
+    });
+
+    const onGoogleLogin = async () => {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    const onLogout = async () => {
+      await auth.signOut();
+      state.calendar = [];
+      state.production = [];
+      state.reports = [];
+      state.ads = [];
+      render();
+    };
+
+    // ========================================
+    // SINCRONIZACIÓN FIRESTORE
+    // ========================================
+    const setupSync = () => {
+      db.collection('calendar').onSnapshot(snap => {
+        state.calendar = [];
+        snap.forEach(doc => state.calendar.push({ _id: doc.id, ...doc.data() }));
+        render();
+      });
+
+      db.collection('production').onSnapshot(snap => {
+        state.production = [];
+        snap.forEach(doc => state.production.push({ _id: doc.id, ...doc.data() }));
+        render();
+      });
+
+      db.collection('reports').onSnapshot(snap => {
+        state.reports = [];
+        snap.forEach(doc => state.reports.push({ _id: doc.id, ...doc.data() }));
+        render();
+      });
+
+      db.collection('ads').onSnapshot(snap => {
+        state.ads = [];
+        snap.forEach(doc => state.ads.push({ _id: doc.id, ...doc.data() }));
+        render();
+      });
+    };
+
+    // ========================================
+    // ACCIONES
+    // ========================================
+    const onAddRow = async () => {
+      if (!state.user) return;
+      try {
+        state.syncing = true;
+        render();
+        await db.collection(state.active).add({
+          createdAt: new Date(),
+          createdBy: state.user.email
+        });
+        state.syncing = false;
+        render();
+      } catch (err) {
+        alert('Error: ' + err.message);
+        state.syncing = false;
+        render();
+      }
+    };
+
+    const updateCell = async (docId, field, value) => {
+      try {
+        state.syncing = true;
+        render();
+        await db.collection(state.active).doc(docId).update({ [field]: value });
+        state.syncing = false;
+        render();
+      } catch (err) {
+        alert('Error: ' + err.message);
+        state.syncing = false;
+        render();
+      }
+    };
+
+    const switchTab = (tab) => {
+      state.active = tab;
+      render();
+    };
+
+    // ========================================
+    // RENDER
+    // ========================================
+    const render = () => {
+      const app = document.getElementById('app');
+      
+      if (!state.user) {
+        app.innerHTML = `
+          <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0f1f3d,#0c1a33);display:flex;align-items:center;justify-content:center;z-index:999;">
+            <div style="background:#fff;border-radius:16px;padding:48px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;">
+              <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;">C</div>
+              <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f1f3d;">Content OS</h1>
+              <p style="margin:0 0 32px;font-size:14px;color:#64748b;">Colaboración en tiempo real</p>
+              <button onclick="window.onGoogleLogin()" style="width:100%;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.28);">
+                Inicia con Google
+              </button>
+              <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Todos ven los mismos datos en vivo</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const rows = state[state.active];
+      const tabLabels = { calendar: 'Calendario', production: 'Producción', reports: 'Reportes', ads: 'Ads' };
+      const counts = { calendar: state.calendar.length, production: state.production.length, reports: state.reports.length, ads: state.ads.length };
+
+      app.innerHTML = `
+        <div style="display:flex;height:100vh;width:100%;overflow:hidden;">
+          <aside style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
+            <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.1);">
+              <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;">C</div>
+              <div style="line-height:1.1;flex:1;">
+                <div style="font-weight:700;font-size:15px;">Content OS</div>
+                <div style="font-size:10px;color:#7e92b3;font-weight:500;">${state.user.email}</div>
+              </div>
+            </div>
+
+            <nav style="display:flex;flex-direction:column;gap:3px;flex:1;margin-top:14px;">
+              ${['calendar', 'production', 'reports', 'ads'].map(tab => `
+                <button onclick="window.switchTab('${tab}')" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;border:none;background:${state.active === tab ? 'rgba(255,255,255,.08)' : 'transparent'};color:${state.active === tab ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+                  <span>${tabLabels[tab]}</span>
+                  <span style="background:${state.active === tab ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)'};color:#cad5e8;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700;margin-left:auto;">${counts[tab]}</span>
+                </button>
+              `).join('')}
+            </nav>
+
+            <button onclick="window.onLogout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 11px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#cad5e8;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+              Cerrar sesión
+            </button>
+          </aside>
+
+          <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <header style="height:66px;flex:none;background:#fff;border-bottom:1px solid #e8edf3;display:flex;align-items:center;padding:0 26px;gap:18px;">
+              <div style="flex:1;">
+                <div style="font-size:18px;font-weight:700;color:#0f1f3d;">${tabLabels[state.active]}</div>
+                <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;">Editando en tiempo real • Todos ven lo mismo</div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:9px;">
+                ${state.syncing ? '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#b45309;background:#fef3c7;padding:6px 10px;border-radius:6px;font-weight:600;">Sincronizando...</div>' : '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#15803d;background:#dcfce7;padding:6px 10px;border-radius:6px;font-weight:600;">✓ Sincronizado</div>'}
+                <button onclick="window.onAddRow()" style="display:flex;align-items:center;gap:6px;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+                  + Nueva fila
+                </button>
+              </div>
+            </header>
+
+            <div style="flex:1;overflow:auto;padding:24px 26px;">
+              <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;box-shadow:0 1px 2px rgba(16,30,54,.04);overflow:hidden;">
+                <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-size:14px;font-weight:700;color:#0f1f3d;">${rows.length} filas</div>
+                
+                ${rows.length === 0 ? `
+                  <div style="padding:48px 20px;text-align:center;color:#94a3b8;">
+                    <div style="font-size:13.5px;font-weight:500;">No hay filas todavía.</div>
+                    <button onclick="window.onAddRow()" style="margin-top:14px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Agregar primera fila</button>
+                  </div>
+                ` : `
+                  <div style="overflow:auto;">
+                    <table style="width:100%;border-collapse:collapse;">
+                      <thead>
+                        <tr style="background:#f8fafc;">
+                          <th style="border-bottom:1.5px solid #e8edf3;padding:12px 18px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;text-align:left;">Fecha</th>
+                          <th style="border-bottom:1.5px solid #e8edf3;padding:12px 18px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;text-align:left;">Plataforma</th>
+                          <th style="border-bottom:1.5px solid #e8edf3;padding:12px 18px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;text-align:left;">Contenido</th>
+                          <th style="border-bottom:1.5px solid #e8edf3;padding:12px 18px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;text-align:left;">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${rows.map(row => `
+                          <tr style="border-bottom:1px solid #f1f4f8;">
+                            <td style="padding:12px 18px;">
+                              <input type="date" value="${row.fecha || ''}" onchange="window.updateCell('${row._id}', 'fecha', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" />
+                            </td>
+                            <td style="padding:12px 18px;">
+                              <input type="text" value="${row.plataforma || ''}" onchange="window.updateCell('${row._id}', 'plataforma', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" placeholder="Plataforma" />
+                            </td>
+                            <td style="padding:12px 18px;">
+                              <input type="text" value="${row.contenido || ''}" onchange="window.updateCell('${row._id}', 'contenido', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" placeholder="Contenido" />
+                            </td>
+                            <td style="padding:12px 18px;">
+                              <select onchange="window.updateCell('${row._id}', 'estado', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;outline:none;cursor:pointer;">
+                                <option value="">—</option>
+                                <option value="Idea" ${row.estado === 'Idea' ? 'selected' : ''}>Idea</option>
+                                <option value="Producción" ${row.estado === 'Producción' ? 'selected' : ''}>Producción</option>
+                                <option value="Aprobación" ${row.estado === 'Aprobación' ? 'selected' : ''}>Aprobación</option>
+                                <option value="Programado" ${row.estado === 'Programado' ? 'selected' : ''}>Programado</option>
+                                <option value="Publicado" ${row.estado === 'Publicado' ? 'selected' : ''}>Publicado</option>
+                              </select>
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                `}
+              </div>
+            </div>
+          </main>
+        </div>
+      `;
+    };
+
+    // Exponer funciones globales
+    window.onGoogleLogin = onGoogleLogin;
+    window.onLogout = onLogout;
+    window.onAddRow = onAddRow;
+    window.updateCell = updateCell;
+    window.switchTab = switchTab;
+
+    // Render inicial
+    render();
+  </script>
+</body>
+</html>
