@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  select{appearance:none;-webkit-appearance:none}
+  option{background:#fff;color:#1e293b;font-weight:500}
+  input::placeholder,textarea::placeholder{color:#aeb8c6}
+  input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif}
+  ::-webkit-scrollbar{height:11px;width:11px}
+  ::-webkit-scrollbar-thumb{background:#cdd6e2;border-radius:7px;border:3px solid #f4f6f9}
+  ::-webkit-scrollbar-thumb:hover{background:#b6c1d1}
+  ::-webkit-scrollbar-track{background:transparent}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;font-family:'Plus Jakarta Sans',sans-serif;color:#1e293b;background:#f4f6f9;overflow:hidden;">
+
+  <aside style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
+    <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;">
+      <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;box-shadow:0 4px 12px rgba(37,99,235,.4);">C</div>
+      <div style="line-height:1.1;">
+        <div style="font-weight:700;font-size:15px;letter-spacing:-.01em;">Content OS</div>
+        <div style="font-size:10.5px;color:#7e92b3;font-weight:500;letter-spacing:.04em;text-transform:uppercase;">Marketing Agency</div>
+      </div>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="9">
+        <button onClick="{{ item.onClick }}" style="{{ item.btnStyle }}" style-hover="{{ item.hoverStyle }}">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="{{ item.d }}"></path></svg>
+          <span style="flex:1;text-align:left;white-space:nowrap;">{{ item.label }}</span>
+          <sc-if value="{{ item.hasCount }}" hint-placeholder-val="{{ false }}"><span style="{{ item.badgeStyle }}">{{ item.count }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <button onClick="{{ onToggleDemo }}" style="{{ demoBtnStyle }}">{{ demoBtnLabel }}</button>
+  </aside>
+
+  <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+
+    <header style="height:66px;flex:none;background:#fff;border-bottom:1px solid #e8edf3;display:flex;align-items:center;padding:0 26px;gap:18px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;color:#0f1f3d;line-height:1.15;">{{ meta.title }}</div>
+        <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;">{{ meta.subtitle }}</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;">
+        <div style="display:flex;align-items:center;background:#f4f6f9;border:1px solid #e8edf3;border-radius:9px;overflow:hidden;">
+          <select value="{{ month }}" onChange="{{ onMonth }}" style="border:none;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
+            <sc-for list="{{ monthOptions }}" as="m" hint-placeholder-count="12"><option value="{{ m }}">{{ m }}</option></sc-for>
+          </select>
+          <select value="{{ year }}" onChange="{{ onYear }}" style="border:none;border-left:1px solid #e8edf3;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
+            <sc-for list="{{ yearOptions }}" as="y" hint-placeholder-count="3"><option value="{{ y }}">{{ y }}</option></sc-for>
+          </select>
+        </div>
+
+        <select value="{{ clientFilter }}" onChange="{{ onClientFilter }}" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;">
+          <sc-for list="{{ clientOptions }}" as="c" hint-placeholder-count="3"><option value="{{ c }}">{{ c }}</option></sc-for>
+        </select>
+
+        <sc-if value="{{ showAddBtn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ onAddRow }}" style="display:flex;align-items:center;gap:6px;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.28);" style-hover="background:#1d4ed8;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            Nueva fila
+          </button>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow:auto;padding:24px 26px 40px;">
+
+      <!-- DASHBOARD -->
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:18px;animation:fadeUp .35s ease;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;">
+            <sc-for list="{{ dash.cards }}" as="card" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #eef1f5;border-radius:14px;padding:17px 18px;display:flex;flex-direction:column;gap:13px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+                <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ card.iconBg }};color:{{ card.accent }};">
+                  <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ card.d }}"></path></svg>
+                </div>
+                <div>
+                  <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;color:#0f1f3d;line-height:1;">{{ card.value }}</div>
+                  <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;margin-top:5px;">{{ card.label }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- FLUJO LINEAL -->
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;margin-bottom:4px;">Recorrido del contenido</div>
+            <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;margin-bottom:16px;">Flujo lineal: cada pieza avanza etapa por etapa hasta publicarse.</div>
+            <div style="display:flex;align-items:center;gap:4px;overflow-x:auto;padding-bottom:6px;">
+              <sc-for list="{{ flowStages }}" as="st" hint-placeholder-count="9">
+                <div style="display:flex;align-items:center;gap:4px;flex:none;">
+                  <sc-if value="{{ st.showArrow }}" hint-placeholder-val="{{ false }}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#c2ccd9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                  </sc-if>
+                  <div style="{{ st.pillStyle }}">
+                    <sc-if value="{{ st.isCorr }}" hint-placeholder-val="{{ false }}">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 0015.5 6.3M21 12A9 9 0 005.5 5.7M3 18v-3h3M21 6v3h-3"></path></svg>
+                    </sc-if>
+                    <span>{{ st.name }}</span>
+                    <span style="{{ st.badgeStyle }}">{{ st.count }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:13px;display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;font-weight:500;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 0015.5 6.3M3 18v-3h3"></path></svg>
+              <span>Si hay correcciones, el contenido regresa a Aprobación y repite el ciclo hasta ser aprobado y programado.</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:16px;">
+            <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+              <div style="font-size:14px;font-weight:700;color:#0f1f3d;margin-bottom:16px;">Contenidos por estado</div>
+              <div style="display:flex;gap:22px;align-items:center;">
+                <div style="position:relative;width:148px;height:148px;flex:none;">
+                  <div style="width:148px;height:148px;border-radius:50%;background:{{ dash.donutGradient }};"></div>
+                  <div style="position:absolute;inset:20px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div style="font-size:30px;font-weight:800;color:#0f1f3d;line-height:1;letter-spacing:-.03em;">{{ dash.total }}</div>
+                    <div style="font-size:11px;color:#9aa7ba;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;">total</div>
+                  </div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:7px;max-height:160px;overflow-y:auto;">
+                  <sc-for list="{{ dash.legend }}" as="L" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:9px;font-size:12.5px;">
+                      <span style="width:9px;height:9px;border-radius:3px;background:{{ L.color }};flex:none;"></span>
+                      <span style="flex:1;color:#475569;font-weight:500;">{{ L.name }}</span>
+                      <span style="color:#0f1f3d;font-weight:700;">{{ L.count }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+              <div style="font-size:14px;font-weight:700;color:#0f1f3d;margin-bottom:18px;">Publicaciones por plataforma</div>
+              <div style="display:flex;flex-direction:column;gap:13px;">
+                <sc-for list="{{ dash.platforms }}" as="p" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:11px;">
+                    <div style="width:82px;font-size:12.5px;color:#475569;font-weight:500;flex:none;">{{ p.label }}</div>
+                    <div style="flex:1;height:11px;background:#f1f5f9;border-radius:6px;overflow:hidden;">
+                      <div style="height:100%;width:{{ p.pct }}%;background:linear-gradient(90deg,#3b82f6,#2563eb);border-radius:6px;transition:width .4s;"></div>
+                    </div>
+                    <div style="width:28px;text-align:right;font-size:13px;font-weight:700;color:#0f1f3d;flex:none;">{{ p.count }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <div style="font-size:14px;font-weight:700;color:#0f1f3d;">Calendario · {{ month }} {{ year }}</div>
+              <div style="font-size:12px;color:#9aa7ba;font-weight:500;">{{ dash.total }} contenidos programados</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;">
+              <sc-for list="{{ dash.weekdays }}" as="w" hint-placeholder-count="7">
+                <div style="text-align:center;font-size:11px;font-weight:700;color:#9aa7ba;text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px;">{{ w }}</div>
+              </sc-for>
+              <sc-for list="{{ dash.calCells }}" as="c" hint-placeholder-count="35">
+                <div style="{{ c.style }}">
+                  <sc-if value="{{ c.has }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:12px;font-weight:600;color:#475569;">{{ c.day }}</span>
+                    <sc-if value="{{ c.hasCount }}" hint-placeholder-val="{{ false }}">
+                      <span style="margin-top:auto;align-self:flex-start;background:#2563eb;color:#fff;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;">{{ c.count }}</span>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+            <sc-for list="{{ dash.kpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:linear-gradient(135deg,#0f1f3d,#13284c);border-radius:14px;padding:17px 18px;color:#fff;">
+                <div style="font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1;">{{ k.value }}</div>
+                <div style="font-size:12px;color:#9fb0c9;font-weight:500;margin-top:7px;">{{ k.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- REPORTES / ADS · constructor de reporte -->
+      <sc-if value="{{ showAnalytics }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:18px;animation:fadeUp .35s ease;">
+
+          <!-- Panel de control -->
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:16px 20px;box-shadow:0 1px 2px rgba(16,30,54,.04);display:flex;flex-direction:column;gap:13px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;width:54px;flex:none;">Filtros</span>
+              <sc-for list="{{ analytics.filters }}" as="f" hint-placeholder-count="3">
+                <select value="{{ f.value }}" onChange="{{ f.onChange }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:600;color:#475569;padding:8px 12px;border-radius:9px;outline:none;cursor:pointer;">
+                  <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="5"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+              </sc-for>
+              <sc-if value="{{ analytics.hasFilters }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ analytics.onClear }}" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #e8edf3;border-radius:9px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#64748b;" style-hover="color:#dc2626;border-color:#fecaca;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                  Limpiar
+                </button>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #f1f4f8;padding-top:13px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;width:54px;flex:none;">Vista</span>
+              <span style="font-size:12px;color:#64748b;font-weight:600;">Agrupar por</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <sc-for list="{{ analytics.dims }}" as="d" hint-placeholder-count="4"><button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button></sc-for>
+              </div>
+              <span style="font-size:12px;color:#64748b;font-weight:600;margin-left:4px;">Métrica</span>
+              <select value="{{ analytics.metricValue }}" onChange="{{ analytics.onMetric }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:700;color:#0f1f3d;padding:8px 12px;border-radius:9px;outline:none;cursor:pointer;">
+                <sc-for list="{{ analytics.metricOptions }}" as="o" hint-placeholder-count="8"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+              <div style="flex:1;min-width:8px;"></div>
+              <div style="display:flex;gap:6px;">
+                <sc-for list="{{ analytics.chartTypes }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onClick }}" style="{{ t.style }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>{{ t.label }}</button></sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjetas de métrica -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;">
+            <sc-for list="{{ analytics.cards }}" as="m" hint-placeholder-count="9">
+              <div style="background:#fff;border:1px solid #eef1f5;border-radius:13px;padding:15px 16px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+                <div style="font-size:11.5px;color:#9aa7ba;font-weight:600;text-transform:uppercase;letter-spacing:.03em;">{{ m.label }}</div>
+                <div style="font-size:24px;font-weight:800;letter-spacing:-.03em;color:{{ m.accent }};margin-top:8px;line-height:1;">{{ m.value }}</div>
+                <sc-if value="{{ m.hasSub }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#94a3b8;font-weight:500;margin-top:6px;">{{ m.sub }}</div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- Gráfico principal -->
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;margin-bottom:16px;">{{ analytics.chartTitle }}</div>
+            <sc-if value="{{ analytics.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px 0;text-align:center;color:#aeb8c6;font-size:13px;font-weight:500;">Sin datos — agrega filas o carga el ejemplo</div>
+            </sc-if>
+
+            <sc-if value="{{ analytics.isBar }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <sc-for list="{{ analytics.bars }}" as="b" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:130px;font-size:12.5px;color:#475569;font-weight:600;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.label }}</div>
+                    <div style="flex:1;height:13px;background:#f1f5f9;border-radius:7px;overflow:hidden;"><div style="height:100%;width:{{ b.pct }}%;background:{{ b.color }};border-radius:7px;transition:width .4s;"></div></div>
+                    <div style="width:92px;text-align:right;font-size:12.5px;font-weight:700;color:#0f1f3d;flex:none;font-variant-numeric:tabular-nums;">{{ b.value }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ analytics.isDonut }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:28px;align-items:center;flex-wrap:wrap;">
+                <div style="position:relative;width:172px;height:172px;flex:none;">
+                  <div style="width:172px;height:172px;border-radius:50%;background:{{ analytics.donut.gradient }};"></div>
+                  <div style="position:absolute;inset:27px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;">
+                    <div style="font-size:19px;font-weight:800;color:#0f1f3d;line-height:1.05;letter-spacing:-.02em;">{{ analytics.donut.total }}</div>
+                    <div style="font-size:10px;color:#9aa7ba;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:4px;">total</div>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:9px;">
+                  <sc-for list="{{ analytics.donut.legend }}" as="L" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:10px;font-size:13px;">
+                      <span style="width:11px;height:11px;border-radius:3px;background:{{ L.color }};flex:none;"></span>
+                      <span style="flex:1;color:#475569;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ L.name }}</span>
+                      <span style="color:#0f1f3d;font-weight:700;font-variant-numeric:tabular-nums;">{{ L.value }}</span>
+                      <span style="color:#9aa7ba;font-weight:600;width:42px;text-align:right;">{{ L.pct }}%</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ analytics.isLine }}" hint-placeholder-val="{{ false }}">
+              <svg viewBox="0 0 {{ analytics.line.W }} {{ analytics.line.H }}" style="width:100%;height:auto;display:block;overflow:visible;">
+                <sc-for list="{{ analytics.line.grid }}" as="g" hint-placeholder-count="5">
+                  <line x1="{{ g.x1 }}" y1="{{ g.y }}" x2="{{ g.x2 }}" y2="{{ g.y }}" stroke="#eef1f5" stroke-width="1"></line>
+                  <text x="10" y="{{ g.ty }}" style="fill:#94a3b8;font-size:10px;font-weight:600;">{{ g.value }}</text>
+                </sc-for>
+                <path d="{{ analytics.line.areaPath }}" fill="#2563eb" opacity="0.09"></path>
+                <path d="{{ analytics.line.linePath }}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+                <sc-for list="{{ analytics.line.dots }}" as="pt" hint-placeholder-count="6">
+                  <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="4" fill="#fff" stroke="#2563eb" stroke-width="2.5"></circle>
+                  <text x="{{ pt.x }}" y="{{ pt.vy }}" style="fill:#0f1f3d;font-size:10px;font-weight:700;text-anchor:middle;">{{ pt.value }}</text>
+                </sc-for>
+                <sc-for list="{{ analytics.line.labels }}" as="lb" hint-placeholder-count="6">
+                  <text x="{{ lb.x }}" y="{{ lb.ly }}" style="fill:#94a3b8;font-size:10px;font-weight:600;text-anchor:middle;">{{ lb.label }}</text>
+                </sc-for>
+              </svg>
+            </sc-if>
+          </div>
+
+          <!-- Tabla de resumen -->
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;box-shadow:0 1px 2px rgba(16,30,54,.04);overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid #eef1f5;font-size:14px;font-weight:700;color:#0f1f3d;">Resumen por {{ analytics.dimLabel }}</div>
+            <sc-if value="{{ analytics.summary.hasRows }}" hint-placeholder-val="{{ false }}">
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:640px;">
+                  <thead>
+                    <tr>
+                      <sc-for list="{{ analytics.summary.columns }}" as="c" hint-placeholder-count="6"><th style="{{ c.thStyle }}">{{ c.label }}</th></sc-for>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ analytics.summary.rows }}" as="r" hint-placeholder-count="4">
+                      <tr style="border-top:1px solid #f1f4f8;">
+                        <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="6">
+                          <td style="{{ cell.tdStyle }}"><sc-if value="{{ cell.isLabel }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:8px;"><span style="{{ cell.dotStyle }}"></span>{{ cell.value }}</span></sc-if><sc-if value="{{ cell.isVal }}" hint-placeholder-val="{{ false }}">{{ cell.value }}</sc-if></td>
+                        </sc-for>
+                      </tr>
+                    </sc-for>
+                    <tr style="border-top:2px solid #e8edf3;background:#f8fafc;">
+                      <sc-for list="{{ analytics.summary.totalCells }}" as="cell" hint-placeholder-count="6"><td style="{{ cell.tdStyle }}">{{ cell.value }}</td></sc-for>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+            <sc-if value="{{ analytics.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px;text-align:center;color:#aeb8c6;font-size:13px;font-weight:500;">Sin datos — agrega filas o carga el ejemplo</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CALENDARIO header: flujo + cambiar vista -->
+      <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:16px;animation:fadeUp .35s ease;">
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;margin-bottom:4px;">Recorrido del contenido</div>
+            <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;margin-bottom:16px;">Flujo lineal: cada pieza avanza etapa por etapa hasta publicarse.</div>
+            <div style="display:flex;align-items:center;gap:4px;overflow-x:auto;padding-bottom:6px;">
+              <sc-for list="{{ flowStages }}" as="st" hint-placeholder-count="9">
+                <div style="display:flex;align-items:center;gap:4px;flex:none;">
+                  <sc-if value="{{ st.showArrow }}" hint-placeholder-val="{{ false }}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#c2ccd9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                  </sc-if>
+                  <div style="{{ st.pillStyle }}">
+                    <sc-if value="{{ st.isCorr }}" hint-placeholder-val="{{ false }}">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 0015.5 6.3M21 12A9 9 0 005.5 5.7M3 18v-3h3M21 6v3h-3"></path></svg>
+                    </sc-if>
+                    <span>{{ st.name }}</span>
+                    <span style="{{ st.badgeStyle }}">{{ st.count }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:13px;display:flex;align-items:center;gap:7px;font-size:12px;color:#94a3b8;font-weight:500;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#b91c1c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 0015.5 6.3M3 18v-3h3"></path></svg>
+              <span>Si hay correcciones, el contenido regresa a Aprobación y repite el ciclo hasta ser aprobado y programado.</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;background:#fff;border:1px solid #eef1f5;border-radius:12px;padding:5px;width:max-content;box-shadow:0 1px 2px rgba(16,30,54,.04);">
+            <sc-for list="{{ calViews }}" as="v" hint-placeholder-count="3">
+              <button onClick="{{ v.onClick }}" style="{{ v.style }}">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="{{ v.d }}"></path></svg>
+                {{ v.label }}
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- GENERIC TABLE -->
+      <sc-if value="{{ showTable }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;box-shadow:0 1px 2px rgba(16,30,54,.04);overflow:hidden;display:flex;flex-direction:column;animation:fadeUp .35s ease;">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #eef1f5;flex-wrap:wrap;">
+            <sc-for list="{{ table.filters }}" as="f" hint-placeholder-count="2">
+              <select value="{{ f.value }}" onChange="{{ f.onChange }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:600;color:#475569;padding:7px 11px;border-radius:8px;outline:none;cursor:pointer;">
+                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="5"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+            </sc-for>
+            <sc-if value="{{ table.pinNote }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#94a3b8;font-weight:600;background:#f8fafc;border:1px solid #eef1f5;padding:6px 10px;border-radius:8px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-2M16 3l5 5M21 3l-9 9-3 1 1-3z"></path></svg>
+                Estado y Prioridad fijos a la derecha
+              </div>
+            </sc-if>
+            <div style="flex:1;"></div>
+            <div style="font-size:12.5px;color:#9aa7ba;font-weight:600;">{{ table.count }} {{ table.countLabel }}</div>
+          </div>
+
+          <div style="overflow:auto;max-height:calc(100vh - 250px);">
+            <div style="min-width:{{ table.minWidth }}px;">
+              <div style="display:flex;position:sticky;top:0;z-index:4;background:#f8fafc;border-bottom:1.5px solid #e8edf3;">
+                <sc-for list="{{ table.columns }}" as="col" hint-placeholder-count="8">
+                  <div style="{{ col.boxStyle }}">{{ col.label }}</div>
+                </sc-for>
+                <div style="{{ table.deleteHeadStyle }}"></div>
+              </div>
+
+              <sc-for list="{{ table.rows }}" as="row" hint-placeholder-count="4">
+                <div style="display:flex;border-bottom:1px solid #f1f4f8;" style-hover="background:#fafbfd;">
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="8">
+                    <div style="{{ cell.boxStyle }}">
+                      <sc-if value="{{ cell.isAuto }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:700;color:#94a3b8;padding:0 11px;font-variant-numeric:tabular-nums;">{{ cell.value }}</span></sc-if>
+                      <sc-if value="{{ cell.isInput }}" hint-placeholder-val="{{ false }}"><input type="{{ cell.type }}" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}"></sc-if>
+                      <sc-if value="{{ cell.isText }}" hint-placeholder-val="{{ false }}"><textarea value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" ref="{{ cell.ref }}" rows="1" style="{{ cell.style }}"></textarea></sc-if>
+                      <sc-if value="{{ cell.isSelect }}" hint-placeholder-val="{{ false }}">
+                        <select value="{{ cell.value }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}">
+                          <sc-for list="{{ cell.options }}" as="opt" hint-placeholder-count="6"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+                        </select>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                  <div style="{{ table.deleteCellStyle }}">
+                    <button onClick="{{ row.onDelete }}" style="width:26px;height:26px;border:none;background:transparent;color:#c2ccd9;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#fee2e2;color:#dc2626;">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{ table.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:48px 20px;text-align:center;">
+                <div style="font-size:13.5px;color:#94a3b8;font-weight:500;">No hay filas todavía.</div>
+                <button onClick="{{ onAddRow }}" style="margin-top:14px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Agregar primera fila</button>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="padding:11px 18px;border-top:1px solid #eef1f5;">
+            <button onClick="{{ onAddRow }}" style="display:flex;align-items:center;gap:7px;background:transparent;color:#64748b;border:none;font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:4px 2px;" style-hover="color:#2563eb;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              Agregar fila
+            </button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CALENDARIO: vista mes -->
+      <sc-if value="{{ isCalGrid }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);animation:fadeUp .35s ease;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;">Calendario · {{ month }} {{ year }}</div>
+            <div style="font-size:12px;color:#9aa7ba;font-weight:500;">Cambia el estado directamente en cada tarjeta</div>
+          </div>
+          <sc-if value="{{ calGrid.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:40px 20px;text-align:center;color:#94a3b8;font-size:13.5px;font-weight:500;">No hay contenido para este mes. Agrega filas o carga el ejemplo.</div>
+          </sc-if>
+          <sc-if value="{{ calGrid.has }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;">
+              <sc-for list="{{ calGrid.weekdays }}" as="w" hint-placeholder-count="7">
+                <div style="text-align:center;font-size:11px;font-weight:700;color:#9aa7ba;text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px;">{{ w }}</div>
+              </sc-for>
+              <sc-for list="{{ calGrid.cells }}" as="c" hint-placeholder-count="35">
+                <div style="{{ c.style }}">
+                  <sc-if value="{{ c.has }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:12px;font-weight:700;color:#475569;">{{ c.day }}</span>
+                      <sc-if value="{{ c.hasItems }}" hint-placeholder-val="{{ false }}"><span style="background:#eef4ff;color:#2563eb;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;">{{ c.count }}</span></sc-if>
+                    </div>
+                    <sc-for list="{{ c.items }}" as="it" hint-placeholder-count="0">
+                      <div style="{{ it.cardStyle }}">
+                        <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em;">{{ it.platform }}</div>
+                        <div style="font-size:12px;font-weight:600;color:#1e293b;line-height:1.3;">{{ it.label }}</div>
+                        <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
+                          <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+                        </select>
+                        <select value="{{ it.prioridad }}" onChange="{{ it.onPrioridad }}" style="{{ it.prioStyle }}">
+                          <sc-for list="{{ prioOptions }}" as="opt" hint-placeholder-count="3"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+                        </select>
+                      </div>
+                    </sc-for>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- CALENDARIO: vista Gantt -->
+      <sc-if value="{{ isCalGantt }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;box-shadow:0 1px 2px rgba(16,30,54,.04);animation:fadeUp .35s ease;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;">Gantt · línea de tiempo por fases</div>
+            <div style="font-size:12px;color:#9aa7ba;font-weight:500;">{{ month }} {{ year }}</div>
+          </div>
+          <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;margin-bottom:14px;">Arrastra una barra para moverla y sus bordes para expandir la fase. Despliega una fila para editar todas las fases, desde la idea hasta su aprobación.</div>
+
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="display:flex;gap:4px;background:#f4f6f9;border:1px solid #eef1f5;border-radius:10px;padding:4px;">
+              <button onClick="{{ gantt.onMonth }}" style="{{ gantt.monthBtnStyle }}">Mes actual</button>
+              <button onClick="{{ gantt.onFull }}" style="{{ gantt.fullBtnStyle }}">Histórico completo</button>
+            </div>
+            <button onClick="{{ gantt.onToggleAll }}" style="{{ gantt.expandAllStyle }}">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"></path></svg>
+              {{ gantt.expandAllLabel }}
+            </button>
+          </div>
+
+          <sc-if value="{{ gantt.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:40px 20px;text-align:center;color:#94a3b8;font-size:13.5px;font-weight:500;">No hay contenido en este rango. Cambia a "Histórico completo" o agrega fechas.</div>
+          </sc-if>
+          <sc-if value="{{ gantt.has }}" hint-placeholder-val="{{ false }}">
+            <div style="overflow-x:auto;border:1px solid #eef1f5;border-radius:12px;">
+              <div style="{{ gantt.innerStyle }}">
+                <div style="display:flex;border-bottom:1.5px solid #e8edf3;background:#f8fafc;">
+                  <div style="{{ gantt.labelHeadStyle }}">Contenido / Fase</div>
+                  <div style="{{ gantt.headTrackStyle }}">
+                    <div style="{{ gantt.bandRowStyle }}">
+                      <sc-for list="{{ gantt.bands }}" as="b" hint-placeholder-count="1"><div style="{{ b.style }}">{{ b.label }}</div></sc-for>
+                    </div>
+                    <div style="{{ gantt.dayRowStyle }}">
+                      <sc-for list="{{ gantt.days }}" as="d" hint-placeholder-count="30"><div style="{{ d.dayStyle }}">{{ d.d }}</div></sc-for>
+                    </div>
+                  </div>
+                </div>
+
+                <sc-for list="{{ gantt.items }}" as="it" hint-placeholder-count="6">
+                  <div>
+                    <div style="display:flex;border-bottom:1px solid #f1f4f8;">
+                      <div style="{{ gantt.rowLabelStyle }}">
+                        <div style="display:flex;align-items:center;gap:7px;">
+                          <button onClick="{{ it.onToggle }}" style="width:20px;height:20px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#94a3b8;padding:0;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="{{ it.chevStyle }}"><path d="M9 6l6 6-6 6"></path></svg>
+                          </button>
+                          <div style="min-width:0;flex:1;">
+                            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ it.platform }} · {{ it.client }}</div>
+                            <div style="font-size:12px;font-weight:600;color:#1e293b;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ it.label }}</div>
+                          </div>
+                        </div>
+                        <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
+                          <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+                        </select>
+                      </div>
+                      <div style="{{ gantt.trackStyle }}">
+                        <div title="{{ it.titleAttr }}" style="{{ it.sumBarStyle }}">{{ it.label }}</div>
+                      </div>
+                    </div>
+
+                    <sc-if value="{{ it.expanded }}" hint-placeholder-val="{{ false }}">
+                      <sc-for list="{{ it.phases }}" as="ph" hint-placeholder-count="0">
+                        <div style="display:flex;border-bottom:1px solid #f6f8fb;">
+                          <div style="{{ gantt.phaseLabelStyle }}">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                              <span style="width:8px;height:8px;border-radius:3px;background:{{ ph.dotColor }};flex:none;"></span>
+                              <span style="font-size:11px;font-weight:700;color:#475569;">{{ ph.name }}</span>
+                            </div>
+                            <div style="display:flex;gap:5px;">
+                              <input type="date" value="{{ ph.sDate }}" onChange="{{ ph.onS }}" style="{{ gantt.dateInputStyle }}">
+                              <input type="date" value="{{ ph.eDate }}" onChange="{{ ph.onE }}" style="{{ gantt.dateInputStyle }}">
+                            </div>
+                          </div>
+                          <div style="{{ gantt.phaseTrackStyle }}">
+                            <div title="{{ ph.name }}" onMouseDown="{{ ph.onMove }}" style="{{ ph.barStyle }}">
+                              <div onMouseDown="{{ ph.onLeft }}" style="{{ ph.hlStyle }}"></div>
+                              <span style="pointer-events:none;overflow:hidden;text-overflow:ellipsis;">{{ ph.name }}</span>
+                              <div onMouseDown="{{ ph.onRight }}" style="{{ ph.hrStyle }}"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </sc-for>
+                      <sc-if value="{{ it.noFases }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;border-bottom:1px solid #f6f8fb;background:#fcfdfe;">
+                          <div style="{{ gantt.phaseLabelStyle }}">
+                            <button onClick="{{ it.onInit }}" style="background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:8px;padding:7px 11px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;">+ Inicializar fases</button>
+                          </div>
+                          <div style="{{ gantt.phaseTrackStyle }}"></div>
+                        </div>
+                      </sc-if>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- CONTENIDO ARCHIVADO -->
+      <sc-if value="{{ isArchived }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;box-shadow:0 1px 2px rgba(16,30,54,.04);overflow:hidden;animation:fadeUp .35s ease;">
+          <div style="display:flex;align-items:center;gap:11px;padding:16px 20px;border-bottom:1px solid #eef1f5;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4 8h16v12H4zM3 4h18v4H3zM10 12h4"></path></svg>
+            <div style="font-size:14px;font-weight:700;color:#0f1f3d;">Contenido archivado</div>
+            <div style="flex:1;"></div>
+            <div style="font-size:12.5px;color:#9aa7ba;font-weight:600;">{{ archived.count }} archivados</div>
+          </div>
+          <sc-if value="{{ archived.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:48px 24px;text-align:center;color:#94a3b8;font-size:13.5px;font-weight:500;line-height:1.6;">Aún no hay contenido archivado.<br>Los contenidos se archivan automáticamente al marcarse como “Programado” desde Aprobaciones.</div>
+          </sc-if>
+          <sc-for list="{{ archived.items }}" as="it" hint-placeholder-count="0">
+            <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid #f1f4f8;" style-hover="background:#fafbfd;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13.5px;font-weight:600;color:#1e293b;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ it.label }}</div>
+                <div style="font-size:11.5px;color:#94a3b8;font-weight:500;margin-top:2px;">{{ it.sub }}</div>
+              </div>
+              <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
+                <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+              </select>
+              <button onClick="{{ it.onRestore }}" style="display:flex;align-items:center;gap:6px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:8px 13px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;flex:none;" style-hover="background:#dbeafe;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3M3 4v3.3H6.3"></path></svg>
+                Restaurar
+              </button>
+              <button onClick="{{ it.onDelete }}" style="width:32px;height:32px;border:1px solid #f1f4f8;background:#fff;color:#c2ccd9;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;" style-hover="background:#fee2e2;color:#dc2626;border-color:#fecaca;">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  YEARS = ['2025','2026','2027'];
+  PLATFORMS = ['Instagram','Facebook','TikTok','LinkedIn','YouTube','Shorts'];
+  FORMATS = ['Reel','Carrusel','Historia','Estática','Video','Short'];
+  CAL_STATES = ['Idea','Inspiración','Contenido','Producción','Aprobación','Correcciones','Aprobado','Programado','Publicado'];
+  PROD_TYPES = ['Video','Fotografía','Diseño','Motion Graphics','IA'];
+  PROD_STATES = ['Pendiente','En Proceso','Finalizado'];
+  APPROVAL_STATES = ['Pendiente','Enviado','Correcciones','Aprobado','Programado'];
+  ASSET_TYPES = ['Foto','Video','Logo','Plantilla','Recurso IA','Audio'];
+  INSPO_CATS = ['Audio Viral','Tendencia','Diseño','Edición','Storytelling','IA','Competencia'];
+  INSPO_STATES = ['Nuevo','Guardado','Aplicado','Descartado'];
+  PROMPT_TYPES = ['Copy','Diseño','Imagen IA','Video IA','Estrategia','Investigación'];
+  AD_PLATFORMS = ['Meta Ads','Google Ads','TikTok Ads','LinkedIn Ads','YouTube Ads'];
+  AD_OBJECTIVES = ['Reconocimiento','Alcance','Tráfico','Interacción','Leads','Conversiones','Ventas'];
+  AD_FORMATS = ['Imagen','Video','Carrusel','Stories','Reels','Search','Display','Performance Max'];
+  AD_STATES = ['Activa','Pausada','Programada','Finalizada','Borrador'];
+  PRIORITY = ['Alta','Media','Baja'];
+  PILLAR_KEYS = ['Educativo','Venta','Comunidad','Interacción'];
+  LEAD = {Video:5,Reel:3,Carrusel:2,Short:2,Historia:1,'Estática':1};
+  DAYW = 38;
+  PHASE_DUR = {'Idea':2,'Inspiración':2,'Contenido':3,'Producción':4,'Aprobación':2,'Correcciones':2,'Aprobado':1,'Programado':1,'Publicado':1};
+  CHEV = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%2364748b' stroke-width='1.6'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E")`;
+  COLORS = {
+    'Idea':['#eef2f7','#475569'],'Inspiración':['#f5f3ff','#7c3aed'],'Contenido':['#e0f2fe','#0369a1'],
+    'Producción':['#eef2ff','#4f46e5'],'Aprobación':['#ffedd5','#c2410c'],'Correcciones':['#fee2e2','#b91c1c'],
+    'Aprobado':['#dcfce7','#15803d'],'Programado':['#ccfbf1','#0f766e'],'Publicado':['#dbeafe','#1d4ed8'],
+    'Pendiente':['#eef2f7','#64748b'],'En Proceso':['#fef3c7','#b45309'],'Finalizado':['#dcfce7','#15803d'],
+    'Enviado':['#dbeafe','#1d4ed8'],
+    'Alta':['#fee2e2','#b91c1c'],'Media':['#fef3c7','#b45309'],'Baja':['#dcfce7','#15803d'],
+    'Nuevo':['#dbeafe','#1d4ed8'],'Guardado':['#eef2ff','#4f46e5'],'Aplicado':['#dcfce7','#15803d'],'Descartado':['#eef2f7','#94a3b8'],
+    'Activa':['#dcfce7','#15803d'],'Pausada':['#fef3c7','#b45309'],'Programada':['#dbeafe','#1d4ed8'],'Finalizada':['#eef2f7','#64748b'],'Borrador':['#f5f3ff','#7c3aed']
+  };
+
+  state = {
+    active:'dashboard', month:'Junio', year:'2026', clientFilter:'Todos',
+    f1:'', f2:'', demoOn:false, calView:'table',
+    ganttMode:'month', ganttAllExpanded:false, ganttExpanded:{},
+    anGroupBy:{reports:'cliente',ads:'plataforma'}, anMetric:{reports:'alcance',ads:'gasto'}, anChart:{reports:'bar',ads:'bar'}, anFilters:{reports:{},ads:{}},
+    config:[], inspo:[], prompts:[], calendar:[], production:[], approvals:[], assets:[], reports:[], ads:[]
+  };
+
+  rid(){ return Math.random().toString(36).slice(2,9); }
+
+  _tas = new Set();
+  _raf = null;
+  autoSize = (el)=>{ if(!el) return; this._tas.add(el); el.style.height='auto'; el.style.height=Math.max(38, el.scrollHeight)+'px'; };
+  componentDidMount(){ this.resizeAll(); }
+  componentDidUpdate(){ this.resizeAll(); }
+  resizeAll(){ if(this._raf) cancelAnimationFrame(this._raf); this._raf=requestAnimationFrame(()=>{ this._tas.forEach(t=>{ if(!t.isConnected){ this._tas.delete(t); return; } t.style.height='auto'; t.style.height=Math.max(38,t.scrollHeight)+'px'; }); }); }
+
+  chip(val){
+    const cc = this.COLORS[val] || ['#f1f5f9','#94a3b8'];
+    return `height:26px;border:none;border-radius:6px;font:inherit;font-size:11px;font-weight:700;padding:0 20px 0 9px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 6px center;appearance:none;-webkit-appearance:none;`;
+  }
+
+  schema(tab){
+    const M=this.MONTHS, Y=this.YEARS;
+    const S = {
+      config:[
+        {key:'cliente',label:'Cliente',w:140,ph:'Cliente'},{key:'marca',label:'Marca',w:120},
+        {key:'mes',label:'Mes',w:118,kind:'select',opts:M},{key:'anio',label:'Año',w:84,kind:'select',opts:Y},
+        {key:'responsable',label:'Responsable',w:130},{key:'objPrincipal',label:'Objetivo Principal',w:190},
+        {key:'objSecundario',label:'Objetivo Secundario',w:190},{key:'publico',label:'Público Objetivo',w:170},
+        {key:'buyer',label:'Buyer Persona',w:170},{key:'keywords',label:'Palabras Clave',w:170},
+        {key:'hashtags',label:'Hashtags',w:170},{key:'refVisual',label:'Referencia Visual',w:150},
+        {key:'moodboard',label:'Moodboard',w:140},{key:'paleta',label:'Paleta de Color',w:140},
+        {key:'tono',label:'Tono de Comunicación',w:170}
+      ],
+      inspo:[
+        {key:'fecha',label:'Fecha',w:140,kind:'input',type:'date'},{key:'categoria',label:'Categoría',w:150,kind:'select',opts:this.INSPO_CATS},
+        {key:'plataforma',label:'Plataforma',w:130,kind:'select',opts:this.PLATFORMS},{key:'descripcion',label:'Descripción',w:260},
+        {key:'link',label:'Link',w:170,ph:'https://'},{key:'cliente',label:'Aplicable a Cliente',w:160},
+        {key:'estado',label:'Estado',w:140,kind:'status',opts:this.INSPO_STATES}
+      ],
+      prompts:[
+        {key:'nombre',label:'Nombre del Prompt',w:170},{key:'tipo',label:'Tipo',w:130,kind:'select',opts:this.PROMPT_TYPES},
+        {key:'plataforma',label:'Plataforma',w:130,kind:'select',opts:this.PLATFORMS},{key:'objetivo',label:'Objetivo',w:160},
+        {key:'prompt',label:'Prompt',w:320,ph:'Escribe el prompt…'},{key:'resultado',label:'Resultado Esperado',w:200},
+        {key:'obs',label:'Observaciones',w:180}
+      ],
+      calendar:[
+        {key:'id',label:'ID',w:70,kind:'auto'},{key:'cliente',label:'Cliente',w:130},
+        {key:'fecha',label:'Fecha',w:140,kind:'input',type:'date'},{key:'hora',label:'Hora',w:100,kind:'input',type:'time'},
+        {key:'plataforma',label:'Plataforma',w:130,kind:'select',opts:this.PLATFORMS},{key:'formato',label:'Formato',w:120,kind:'select',opts:this.FORMATS},
+        {key:'pilar',label:'Pilar',w:130,kind:'select',opts:this.PILLAR_KEYS},{key:'objetivo',label:'Objetivo',w:150},
+        {key:'hook',label:'Hook',w:180},{key:'concepto',label:'Concepto',w:180},{key:'copy',label:'Copy',w:260,ph:'Copy del post…'},
+        {key:'cta',label:'CTA',w:130},{key:'refVisual',label:'Referencia Visual',w:150},{key:'assets',label:'Link de Assets',w:150,ph:'https://'},
+        {key:'responsable',label:'Responsable',w:130},{key:'prioridad',label:'Prioridad',w:118,kind:'status',opts:this.PRIORITY},
+        {key:'estado',label:'Estado',w:158,kind:'status',opts:this.CAL_STATES}
+      ],
+      production:[
+        {key:'proyecto',label:'Proyecto',w:170},{key:'cliente',label:'Cliente',w:130},
+        {key:'fecha',label:'Fecha',w:140,kind:'input',type:'date'},{key:'responsable',label:'Responsable',w:130},
+        {key:'tipo',label:'Tipo de Producción',w:160,kind:'select',opts:this.PROD_TYPES},{key:'locacion',label:'Locación',w:150},
+        {key:'equipo',label:'Equipo Necesario',w:180},{key:'estado',label:'Estado',w:140,kind:'status',opts:this.PROD_STATES},
+        {key:'comentarios',label:'Comentarios',w:200}
+      ],
+      approvals:[
+        {key:'cliente',label:'Cliente',w:130},{key:'contenido',label:'Contenido',w:200},
+        {key:'envio',label:'Fecha de Envío',w:150,kind:'input',type:'date'},{key:'responsable',label:'Responsable',w:130},
+        {key:'estado',label:'Estado',w:140,kind:'status',opts:this.APPROVAL_STATES},{key:'comentariosCliente',label:'Comentarios Cliente',w:230},
+        {key:'aprobacion',label:'Fecha de Aprobación',w:160,kind:'input',type:'date'}
+      ],
+      assets:[
+        {key:'cliente',label:'Cliente',w:130},{key:'tipo',label:'Tipo de Asset',w:140,kind:'select',opts:this.ASSET_TYPES},
+        {key:'nombre',label:'Nombre',w:190},{key:'url',label:'URL',w:220,ph:'https://'},
+        {key:'fecha',label:'Fecha',w:140,kind:'input',type:'date'},{key:'responsable',label:'Responsable',w:130}
+      ],
+      reports:[
+        {key:'cliente',label:'Cliente',w:130},{key:'plataforma',label:'Plataforma',w:130,kind:'select',opts:this.PLATFORMS},
+        {key:'formato',label:'Formato',w:120,kind:'select',opts:this.FORMATS},{key:'mes',label:'Mes',w:118,kind:'select',opts:M},
+        {key:'alcance',label:'Alcance',w:110,kind:'input',type:'number'},{key:'impresiones',label:'Impresiones',w:120,kind:'input',type:'number'},
+        {key:'interacciones',label:'Interacciones',w:124,kind:'input',type:'number'},{key:'guardados',label:'Guardados',w:110,kind:'input',type:'number'},
+        {key:'compartidos',label:'Compartidos',w:118,kind:'input',type:'number'},{key:'leads',label:'Leads',w:90,kind:'input',type:'number'},
+        {key:'ventas',label:'Ventas',w:100,kind:'input',type:'number'},{key:'roi',label:'ROI',w:90,kind:'input',type:'number'}
+      ],
+      ads:[
+        {key:'cliente',label:'Cliente',w:130},{key:'campania',label:'Campaña',w:190},
+        {key:'plataforma',label:'Plataforma',w:140,kind:'select',opts:this.AD_PLATFORMS},
+        {key:'objetivo',label:'Objetivo',w:140,kind:'select',opts:this.AD_OBJECTIVES},
+        {key:'formato',label:'Formato',w:150,kind:'select',opts:this.AD_FORMATS},
+        {key:'mes',label:'Mes',w:118,kind:'select',opts:M},
+        {key:'inicio',label:'Inicio',w:140,kind:'input',type:'date'},{key:'fin',label:'Fin',w:140,kind:'input',type:'date'},
+        {key:'presupuesto',label:'Presupuesto',w:120,kind:'input',type:'number'},{key:'gasto',label:'Inversión',w:110,kind:'input',type:'number'},
+        {key:'impresiones',label:'Impresiones',w:120,kind:'input',type:'number'},{key:'clics',label:'Clics',w:100,kind:'input',type:'number'},
+        {key:'conversiones',label:'Conversiones',w:124,kind:'input',type:'number'},{key:'ingresos',label:'Ingresos',w:110,kind:'input',type:'number'},
+        {key:'estado',label:'Estado',w:140,kind:'status',opts:this.AD_STATES}
+      ]
+    };
+    return S[tab] || [];
+  }
+
+  quickFilters(tab){
+    const m = {
+      calendar:[{key:'plataforma',label:'Plataforma',opts:this.PLATFORMS},{key:'estado',label:'Estado',opts:this.CAL_STATES}],
+      inspo:[{key:'categoria',label:'Categoría',opts:this.INSPO_CATS},{key:'estado',label:'Estado',opts:this.INSPO_STATES}],
+      production:[{key:'tipo',label:'Tipo',opts:this.PROD_TYPES},{key:'estado',label:'Estado',opts:this.PROD_STATES}],
+      approvals:[{key:'estado',label:'Estado',opts:this.APPROVAL_STATES}],
+      reports:[{key:'plataforma',label:'Plataforma',opts:this.PLATFORMS},{key:'mes',label:'Mes',opts:this.MONTHS}],
+      prompts:[{key:'tipo',label:'Tipo',opts:this.PROMPT_TYPES}],
+      assets:[{key:'tipo',label:'Tipo',opts:this.ASSET_TYPES}],
+      ads:[{key:'plataforma',label:'Plataforma',opts:this.AD_PLATFORMS},{key:'estado',label:'Estado',opts:this.AD_STATES}]
+    };
+    return m[tab] || [];
+  }
+
+  setActive = (t)=> this.setState({active:t, f1:'', f2:''});
+  setCalView = (v)=> this.setState({calView:v});
+  update = (tab,id,key,val)=> this.setState(s=>{
+    const arr = s[tab].map(r=> r._id===id ? {...r,[key]:val} : r);
+    if(tab==='calendar' && key==='fecha' && val){ const it=arr.find(r=>r._id===id); if(it && (!it.fases || !Object.keys(it.fases).length)) it.fases=this.genPhases(val, it.estado); }
+    if(key==='estado' && (tab==='calendar'||tab==='production'||tab==='approvals')){
+      return this.applyWorkflow({...s,[tab]:arr}, tab, id, val);
+    }
+    return {[tab]:arr};
+  });
+
+  contentLabel(r){ return (r.hook||r.concepto||r.copy||r.objetivo||r.proyecto||r.contenido||'Sin título'); }
+  calArchived(cid){ const c=this.state.calendar.find(r=>r._id===cid); return !!(c && c.archived); }
+
+  upsertProd(list, cal, estado, extraComments){
+    const idx=list.findIndex(p=>p.srcId===cal._id);
+    if(idx<0){
+      return [...list,{_id:this.rid(),srcId:cal._id,proyecto:this.contentLabel(cal),cliente:cal.cliente||'',fecha:cal.fecha||'',responsable:cal.responsable||'',tipo:'',locacion:'',equipo:'',estado,comentarios: extraComments?('↩ Correcciones del cliente: '+extraComments):''}];
+    }
+    return list.map((p,i)=>{
+      if(i!==idx) return p;
+      let comentarios=p.comentarios;
+      if(extraComments) comentarios='↩ Correcciones del cliente: '+extraComments+(p.comentarios?'\n'+p.comentarios:'');
+      return {...p,estado,comentarios};
+    });
+  }
+  upsertAppr(list, cal, estado){
+    const idx=list.findIndex(a=>a.srcId===cal._id);
+    if(idx<0){
+      return [...list,{_id:this.rid(),srcId:cal._id,cliente:cal.cliente||'',contenido:this.contentLabel(cal),envio:this.dStr(new Date()),responsable:cal.responsable||'',estado,comentariosCliente:'',aprobacion:''}];
+    }
+    return list.map((a,i)=> i!==idx ? a : {...a,estado});
+  }
+
+  applyWorkflow(state, tab, id, val){
+    let calendar=state.calendar.slice(), production=state.production.slice(), approvals=state.approvals.slice();
+    const findCal=(cid)=>calendar.find(c=>c._id===cid);
+    const setCal=(cid,patch)=>{ calendar=calendar.map(c=> c._id===cid?{...c,...patch}:c); };
+    if(tab==='calendar'){
+      const cal=findCal(id);
+      if(cal){
+        if(val==='Producción') production=this.upsertProd(production,cal,'Pendiente');
+        else if(val==='Aprobación') approvals=this.upsertAppr(approvals,cal,'Pendiente');
+        else if(val==='Correcciones') production=this.upsertProd(production,cal,'En Proceso');
+        if(val==='Programado') setCal(id,{archived:true});
+        else if(cal.archived) setCal(id,{archived:false});
+      }
+    } else if(tab==='production'){
+      const prod=production.find(p=>p._id===id);
+      if(prod && prod.srcId){
+        if(val==='Finalizado'){
+          setCal(prod.srcId,{estado:'Aprobación'});
+          const cal=findCal(prod.srcId);
+          if(cal) approvals=this.upsertAppr(approvals,cal,'Pendiente');
+        } else if(val==='Pendiente'||val==='En Proceso'){
+          setCal(prod.srcId,{estado:'Producción'});
+        }
+      }
+    } else if(tab==='approvals'){
+      const appr=approvals.find(a=>a._id===id);
+      if(appr && appr.srcId){
+        if(val==='Correcciones'){
+          setCal(appr.srcId,{estado:'Correcciones'});
+          const cal=findCal(appr.srcId);
+          if(cal) production=this.upsertProd(production,cal,'En Proceso',appr.comentariosCliente);
+        } else if(val==='Aprobado'){
+          setCal(appr.srcId,{estado:'Aprobado'});
+        } else if(val==='Programado'){
+          setCal(appr.srcId,{estado:'Programado',archived:true});
+        } else if(val==='Enviado'||val==='Pendiente'){
+          setCal(appr.srcId,{estado:'Aprobación'});
+        }
+      }
+    }
+    return {calendar, production, approvals};
+  }
+
+  buildArchived(){
+    let rows=this.state.calendar.filter(r=>r.archived);
+    if(this.state.clientFilter!=='Todos') rows=rows.filter(r=>r.cliente===this.state.clientFilter);
+    const items=rows.map(r=>({
+      _id:r._id, label:this.contentLabel(r),
+      sub:`${r.plataforma||'—'} · ${r.cliente||'—'}${r.fecha?(' · '+r.fecha):''}`,
+      estado:r.estado, estadoStyle:this.chip(r.estado)+'width:152px;flex:none;',
+      onEstado:(e)=>this.update('calendar',r._id,'estado',e.target.value),
+      onRestore:()=>this.update('calendar',r._id,'estado','Aprobado'),
+      onDelete:()=>this.del('calendar',r._id)
+    }));
+    return {items, empty:items.length===0, count:items.length};
+  }
+  del = (tab,id)=> this.setState(s=>({[tab]: s[tab].filter(r=> r._id!==id)}));
+
+  addRow = ()=>{
+    const tab = this.state.active;
+    const o = {_id:this.rid()};
+    this.schema(tab).forEach(c=> o[c.key]='');
+    if(tab==='config' || tab==='reports' || tab==='ads'){ o.mes=this.state.month; }
+    if(tab==='config'){ o.anio=this.state.year; }
+    if(tab==='calendar'){ o.id = 'C'+String(this.state.calendar.length+1).padStart(3,'0'); }
+    this.setState(s=>({[tab]:[...s[tab], o]}));
+  };
+
+  toggleDemo = ()=>{
+    if(this.state.demoOn){
+      this.setState({demoOn:false, config:[],inspo:[],prompts:[],calendar:[],production:[],approvals:[],assets:[],reports:[],ads:[], clientFilter:'Todos', f1:'',f2:''});
+    } else {
+      this.setState({demoOn:true, ...this.demoData()});
+    }
+  };
+
+  demoData(){
+    const r=()=>this.rid();
+    const config=[
+      {_id:r(),cliente:'Aurora Café',marca:'Aurora',mes:'Junio',anio:'2026',responsable:'María L.',objPrincipal:'Aumentar reservas',objSecundario:'Comunidad local',publico:'25-40 urbanos',buyer:'Foodies de barrio',keywords:'café, brunch',hashtags:'#auroracafe',refVisual:'Pinterest board',moodboard:'Cálido / madera',paleta:'Ámbar + crema',tono:'Cercano y cálido'},
+      {_id:r(),cliente:'NovaTech',marca:'Nova',mes:'Junio',anio:'2026',responsable:'Diego R.',objPrincipal:'Generar leads B2B',objSecundario:'Autoridad técnica',publico:'CTOs y PMs',buyer:'Líder de producto',keywords:'SaaS, IA',hashtags:'#novatech',refVisual:'Behance',moodboard:'Azul / minimal',paleta:'Azul + grafito',tono:'Experto y claro'},
+      {_id:r(),cliente:'Bloom Skincare',marca:'Bloom',mes:'Junio',anio:'2026',responsable:'Sofía M.',objPrincipal:'Lanzamiento sérum',objSecundario:'Educación de skincare',publico:'Mujeres 20-35',buyer:'Beauty enthusiast',keywords:'skincare, glow',hashtags:'#bloomglow',refVisual:'TikTok refs',moodboard:'Pastel / suave',paleta:'Rosa + verde',tono:'Fresco y amable'}
+    ];
+    const calRows=[
+      ['Aurora Café','2026-06-03','09:00','Instagram','Reel','Educativo','Engagement','3 errores al preparar café en casa que arruinan tu taza matutina','Tips baristas','Muchos creen que el agua hirviendo es lo ideal, pero quema el grano. Te explicamos la temperatura correcta y dos errores más que cometemos sin darnos cuenta.','Guárdalo ☕','','','María L.','Media','Publicado'],
+      ['Aurora Café','2026-06-08','13:00','TikTok','Short','Comunidad','Awareness','Un día en Aurora','Behind the scenes','','Ven a visitarnos','','','María L.','Baja','Programado'],
+      ['NovaTech','2026-06-05','11:30','LinkedIn','Carrusel','Educativo','Leads','5 señales de que tu equipo acumula deuda técnica','Checklist para CTOs','Si los despliegues dan miedo y cada cambio rompe algo más, estás acumulando deuda técnica. Aquí 5 señales claras y cómo priorizar su pago sin frenar el roadmap.','Descarga la guía','','','Diego R.','Alta','Correcciones'],
+      ['NovaTech','2026-06-12','10:00','LinkedIn','Estática','Venta','Leads','Caso de éxito Nova','Resultados +40%','','Agenda demo','','','Diego R.','Alta','Aprobación'],
+      ['Bloom Skincare','2026-06-06','17:00','Instagram','Reel','Venta','Conversión','Tu glow en 3 pasos','Rutina sérum','','Compra hoy','','','Sofía M.','Alta','Producción'],
+      ['Bloom Skincare','2026-06-15','18:30','Instagram','Historia','Interacción','Engagement','¿Cuál es tu skin type?','Quiz interactivo','','Responde la encuesta','','','Sofía M.','Media','Contenido'],
+      ['Bloom Skincare','2026-06-20','12:00','YouTube','Video','Educativo','Awareness','Ingredientes que sí funcionan','Mini documental','','Suscríbete','','','Sofía M.','Media','Inspiración'],
+      ['NovaTech','2026-06-22','09:30','Shorts','Short','Comunidad','Awareness','Cultura Nova','Team highlights','','Únete al equipo','','','Diego R.','Baja','Idea'],
+      ['Aurora Café','2026-06-25','10:00','Facebook','Estática','Venta','Conversión','Promo de temporada','2x1 en filtrados','','Reserva tu mesa','','','María L.','Media','Aprobado']
+    ];
+    const calendar = calRows.map((v,i)=>({_id:r(),id:'C'+String(i+1).padStart(3,'0'),cliente:v[0],fecha:v[1],hora:v[2],plataforma:v[3],formato:v[4],pilar:v[5],objetivo:v[6],hook:v[7],concepto:v[8],copy:v[9],cta:v[10],refVisual:v[11],assets:v[12],responsable:v[13],prioridad:v[14],estado:v[15],fases:this.genPhases(v[1],v[15])}));
+    const inspo=[
+      {_id:r(),fecha:'2026-06-02',categoria:'Audio Viral',plataforma:'TikTok',descripcion:'Audio trending para transiciones de producto, ideal para reels de skincare con cortes rápidos al ritmo del beat.',link:'https://tiktok.com',cliente:'Bloom Skincare',estado:'Aplicado'},
+      {_id:r(),fecha:'2026-06-04',categoria:'Competencia',plataforma:'Instagram',descripcion:'Campaña de competidor directo',link:'https://instagram.com',cliente:'Aurora Café',estado:'Guardado'},
+      {_id:r(),fecha:'2026-06-09',categoria:'IA',plataforma:'LinkedIn',descripcion:'Formato carrusel generado con IA',link:'https://linkedin.com',cliente:'NovaTech',estado:'Nuevo'}
+    ];
+    const prompts=[
+      {_id:r(),nombre:'Hook reel ventas',tipo:'Copy',plataforma:'Instagram',objetivo:'Captar atención 3s',prompt:'Genera 10 hooks de máximo 8 palabras para un reel de venta de {producto}, con tono cercano y un beneficio claro en cada uno. Evita clichés y palabras genéricas.',resultado:'Lista de hooks',obs:'Tono cercano'},
+      {_id:r(),nombre:'Imagen producto premium',tipo:'Imagen IA',plataforma:'Instagram',objetivo:'Visual de catálogo',prompt:'Fotografía de producto, luz suave, fondo crema, estilo editorial de {marca}…',resultado:'4 variaciones',obs:'Relación 4:5'},
+      {_id:r(),nombre:'Investigación de tendencias',tipo:'Investigación',plataforma:'TikTok',objetivo:'Detectar formatos',prompt:'Resume las 5 tendencias actuales de {industria} en TikTok…',resultado:'Resumen accionable',obs:''}
+    ];
+    const production=[], approvals=[];
+    calendar.forEach(c=>{
+      if(c.estado==='Programado') c.archived=true;
+      const idx=this.CAL_STATES.indexOf(c.estado);
+      const lbl=this.contentLabel(c);
+      const ptipo = ['Reel','Video','Short','Historia'].includes(c.formato)?'Video':'Diseño';
+      if(idx>=3){
+        const pe = c.estado==='Producción'?'Pendiente':(c.estado==='Correcciones'?'En Proceso':'Finalizado');
+        production.push({_id:r(),srcId:c._id,proyecto:lbl,cliente:c.cliente,fecha:c.fecha,responsable:c.responsable,tipo:ptipo,locacion:'',equipo:'',estado:pe,comentarios: c.estado==='Correcciones'?'↩ Correcciones del cliente: ajustar según comentarios en Aprobaciones.':''});
+      }
+      if(idx>=4){
+        const ae = c.estado==='Aprobación'?'Pendiente':(c.estado==='Correcciones'?'Correcciones':(c.estado==='Aprobado'?'Aprobado':'Programado'));
+        approvals.push({_id:r(),srcId:c._id,cliente:c.cliente,contenido:lbl,envio:c.fecha?this.addDays(c.fecha,-3):'',responsable:c.responsable,estado:ae,comentariosCliente: ae==='Correcciones'?'Ajustar el dato del slide 3 y usar un CTA más directo.':'',aprobacion: (ae==='Aprobado'&&c.fecha)?this.addDays(c.fecha,-1):''});
+      }
+    });
+    const assets=[
+      {_id:r(),cliente:'Aurora Café',tipo:'Logo',nombre:'Logo Aurora vector',url:'https://drive.google.com',fecha:'2026-05-20',responsable:'María L.'},
+      {_id:r(),cliente:'Bloom Skincare',tipo:'Plantilla',nombre:'Template historias',url:'https://figma.com',fecha:'2026-05-28',responsable:'Sofía M.'},
+      {_id:r(),cliente:'NovaTech',tipo:'Video',nombre:'B-roll oficina',url:'https://drive.google.com',fecha:'2026-06-03',responsable:'Diego R.'}
+    ];
+    const reports=[
+      {_id:r(),cliente:'Aurora Café',plataforma:'Instagram',formato:'Reel',mes:'Junio',alcance:'18400',impresiones:'24100',interacciones:'1920',guardados:'340',compartidos:'210',leads:'24',ventas:'12',roi:'3.4'},
+      {_id:r(),cliente:'Aurora Café',plataforma:'TikTok',formato:'Short',mes:'Junio',alcance:'31200',impresiones:'40500',interacciones:'2810',guardados:'420',compartidos:'510',leads:'18',ventas:'9',roi:'2.8'},
+      {_id:r(),cliente:'NovaTech',plataforma:'LinkedIn',formato:'Carrusel',mes:'Junio',alcance:'9600',impresiones:'14200',interacciones:'880',guardados:'190',compartidos:'95',leads:'46',ventas:'7',roi:'5.2'},
+      {_id:r(),cliente:'Bloom Skincare',plataforma:'Instagram',formato:'Reel',mes:'Junio',alcance:'22700',impresiones:'29800',interacciones:'2440',guardados:'610',compartidos:'330',leads:'38',ventas:'21',roi:'4.1'},
+      {_id:r(),cliente:'Bloom Skincare',plataforma:'YouTube',formato:'Video',mes:'Mayo',alcance:'8100',impresiones:'9900',interacciones:'540',guardados:'120',compartidos:'70',leads:'9',ventas:'4',roi:'1.9'},
+      {_id:r(),cliente:'NovaTech',plataforma:'LinkedIn',formato:'Estática',mes:'Mayo',alcance:'7200',impresiones:'10100',interacciones:'430',guardados:'88',compartidos:'40',leads:'29',ventas:'5',roi:'4.6'}
+    ];
+    const ads=[
+      {_id:r(),cliente:'Bloom Skincare',campania:'Lanzamiento Sérum · Conversión',plataforma:'Meta Ads',objetivo:'Conversiones',formato:'Reels',mes:'Junio',inicio:'2026-06-05',fin:'2026-06-20',presupuesto:'25000',gasto:'21340',impresiones:'412000',clics:'8900',conversiones:'214',ingresos:'89600',estado:'Activa'},
+      {_id:r(),cliente:'Bloom Skincare',campania:'Remarketing carrito',plataforma:'Meta Ads',objetivo:'Ventas',formato:'Carrusel',mes:'Junio',inicio:'2026-06-08',fin:'2026-06-22',presupuesto:'9000',gasto:'8120',impresiones:'96000',clics:'3400',conversiones:'140',ingresos:'52800',estado:'Activa'},
+      {_id:r(),cliente:'NovaTech',campania:'Generación de leads B2B',plataforma:'LinkedIn Ads',objetivo:'Leads',formato:'Imagen',mes:'Junio',inicio:'2026-06-02',fin:'2026-06-30',presupuesto:'40000',gasto:'33500',impresiones:'180000',clics:'2600',conversiones:'96',ingresos:'0',estado:'Activa'},
+      {_id:r(),cliente:'NovaTech',campania:'Search · Demo producto',plataforma:'Google Ads',objetivo:'Conversiones',formato:'Search',mes:'Junio',inicio:'2026-06-01',fin:'2026-06-30',presupuesto:'30000',gasto:'27800',impresiones:'64000',clics:'4100',conversiones:'58',ingresos:'0',estado:'Activa'},
+      {_id:r(),cliente:'Aurora Café',campania:'Awareness local',plataforma:'Meta Ads',objetivo:'Alcance',formato:'Video',mes:'Junio',inicio:'2026-06-03',fin:'2026-06-18',presupuesto:'8000',gasto:'7600',impresiones:'220000',clics:'5200',conversiones:'62',ingresos:'18600',estado:'Finalizada'},
+      {_id:r(),cliente:'Aurora Café',campania:'Promo 2x1 filtrados',plataforma:'TikTok Ads',objetivo:'Tráfico',formato:'Video',mes:'Junio',inicio:'2026-06-22',fin:'2026-06-30',presupuesto:'6000',gasto:'1450',impresiones:'48000',clics:'1900',conversiones:'21',ingresos:'5400',estado:'Activa'},
+      {_id:r(),cliente:'NovaTech',campania:'Branding YouTube',plataforma:'YouTube Ads',objetivo:'Reconocimiento',formato:'Video',mes:'Mayo',inicio:'2026-05-10',fin:'2026-05-31',presupuesto:'18000',gasto:'17900',impresiones:'310000',clics:'2100',conversiones:'34',ingresos:'0',estado:'Finalizada'}
+    ];
+    return {config,calendar,inspo,prompts,production,approvals,assets,reports,ads};
+  }
+
+  fmt(n){ return Math.round(n).toLocaleString('es-MX'); }
+
+  pie(segs){
+    const total = segs.reduce((a,s)=>a+s.value,0);
+    if(total<=0) return '#eef2f7';
+    let acc=0; const parts=[];
+    segs.forEach(s=>{ const a=acc/total*100, b=(acc+s.value)/total*100; parts.push(`${s.color} ${a}% ${b}%`); acc+=s.value; });
+    return `conic-gradient(${parts.join(',')})`;
+  }
+
+  groupSum(rows,gkey,vkey){
+    const m={};
+    rows.forEach(r=>{ const k=r[gkey]; if(!k) return; m[k]=(m[k]||0)+(parseFloat(r[vkey])||0); });
+    return Object.keys(m).map(k=>({label:k,value:m[k]}));
+  }
+
+  buildBars(items, order){
+    let arr = items.filter(i=>i.value>0);
+    if(order){ arr.sort((a,b)=> order.indexOf(a.label)-order.indexOf(b.label)); }
+    else { arr.sort((a,b)=> b.value-a.value); }
+    const max = Math.max(1, ...arr.map(i=>i.value));
+    const pal = ['#2563eb','#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ec4899','#14b8a6','#6366f1'];
+    return arr.map((i,idx)=>({label:i.label, value:this.fmt(i.value), pct:Math.round(i.value/max*100), color:pal[idx%pal.length]}));
+  }
+
+  filteredCal(){
+    let cal = this.state.calendar.filter(r=> !r.archived);
+    if(this.state.clientFilter!=='Todos') cal = cal.filter(r=> r.cliente===this.state.clientFilter);
+    return cal;
+  }
+
+  selStyle(cell){
+    if(cell.kind==='status'){
+      const cc = (cell.value && this.COLORS[cell.value]) ? this.COLORS[cell.value] : ['#f1f5f9','#94a3b8'];
+      return `margin:4px 7px;width:calc(100% - 14px);height:30px;border:none;border-radius:7px;font:inherit;font-size:12px;font-weight:600;padding:0 22px 0 11px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;`;
+    }
+    return `width:100%;height:38px;border:none;background-color:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 22px 0 11px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;`;
+  }
+
+  cellVM(tab,row,col,pinRight){
+    const val = row[col.key] ?? '';
+    const isText = !col.kind;
+    const align = isText ? 'flex-start' : 'center';
+    const isLead = col.key==='prioridad';
+    const pin = pinRight!=null;
+    let box = `flex:0 0 ${col.w}px;width:${col.w}px;border-right:1px solid #f1f4f8;display:flex;align-items:${align};min-height:39px;`;
+    if(pin){ box += `position:sticky;right:${pinRight}px;z-index:1;background:#fff;${isLead?'box-shadow:-7px 0 9px -7px rgba(15,31,61,.16);':''}`; }
+
+    if(col.kind==='auto') return {isAuto:true,value:val,boxStyle:box};
+    const onChange = (e)=> this.update(tab,row._id,col.key,e.target.value);
+    if(col.kind==='select' || col.kind==='status'){
+      const opts = [{value:'',label:'—'}, ...col.opts.map(o=>({value:o,label:o}))];
+      return {isSelect:true,value:val,options:opts,onChange,style:this.selStyle({kind:col.kind,value:val}),boxStyle:box};
+    }
+    if(col.kind==='input'){
+      return {isInput:true,value:val,type:col.type||'text',ph:col.ph||'',onChange,
+        style:`width:100%;height:38px;border:none;background:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 11px;outline:none;`,boxStyle:box};
+    }
+    const onText = (e)=>{ this.autoSize(e.target); this.update(tab,row._id,col.key,e.target.value); };
+    return {isText:true,value:val,ph:col.ph||'',onChange:onText,ref:this.autoSize,
+      style:`width:100%;min-height:38px;border:none;background:transparent;font:inherit;font-size:13px;line-height:1.45;color:#1e293b;padding:9px 11px;outline:none;resize:none;overflow:hidden;display:block;white-space:pre-wrap;word-break:break-word;`,boxStyle:box};
+  }
+
+  buildTable(tab){
+    const cols = this.schema(tab);
+    let rows = this.state[tab].slice();
+    if(tab==='calendar') rows = rows.filter(r=> !r.archived);
+    if(tab==='production' || tab==='approvals') rows = rows.filter(r=> !(r.srcId && this.calArchived(r.srcId)));
+    const hasClient = cols.some(c=>c.key==='cliente');
+    if(this.state.clientFilter!=='Todos' && hasClient) rows = rows.filter(r=> r.cliente===this.state.clientFilter);
+    const qf = this.quickFilters(tab);
+    if(qf[0] && this.state.f1) rows = rows.filter(r=> r[qf[0].key]===this.state.f1);
+    if(qf[1] && this.state.f2) rows = rows.filter(r=> r[qf[1].key]===this.state.f2);
+
+    const pinned = {};
+    if(tab==='calendar'){ pinned.estado = 46; pinned.prioridad = 46+158; }
+    const pinDel = tab==='calendar';
+
+    const columns = cols.map(c=>{
+      const isPin = pinned[c.key]!=null;
+      const isLead = c.key==='prioridad';
+      let box = `flex:0 0 ${c.w}px;width:${c.w}px;padding:11px 11px;font-size:11.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;border-right:1px solid #eef1f5;white-space:nowrap;`;
+      if(isPin){ box += `position:sticky;right:${pinned[c.key]}px;z-index:5;background:#f8fafc;${isLead?'box-shadow:-7px 0 9px -7px rgba(15,31,61,.16);':''}`; }
+      return {label:c.label, boxStyle:box};
+    });
+
+    const rowVMs = rows.map(r=>({_id:r._id, onDelete:()=>this.del(tab,r._id), cells: cols.map(c=>this.cellVM(tab,r,c, pinned[c.key]))}));
+    const filters = qf.map((q,i)=>({
+      value: i===0?this.state.f1:this.state.f2,
+      options:[{value:'',label:q.label+': Todos'}, ...q.opts.map(o=>({value:o,label:o}))],
+      onChange:(e)=> this.setState(i===0?{f1:e.target.value}:{f2:e.target.value})
+    }));
+    const minW = cols.reduce((a,c)=>a+c.w,0)+46;
+    return {
+      columns, rows:rowVMs, filters, count:rowVMs.length,
+      countLabel: rowVMs.length===1?'fila':'filas', minWidth:minW, empty:rowVMs.length===0,
+      pinNote: pinDel,
+      deleteHeadStyle: `flex:0 0 46px;width:46px;${pinDel?'position:sticky;right:0;z-index:5;background:#f8fafc;':''}`,
+      deleteCellStyle: `flex:0 0 46px;width:46px;display:flex;align-items:center;justify-content:center;min-height:39px;${pinDel?'position:sticky;right:0;z-index:1;background:#fff;':''}`
+    };
+  }
+
+  buildFlow(){
+    const cal = this.filteredCal();
+    return this.CAL_STATES.map((s,i)=>{
+      const c = this.COLORS[s] || ['#eef2f7','#475569'];
+      const count = cal.filter(r=> r.estado===s).length;
+      return {
+        name:s, count, showArrow:i>0, isCorr:s==='Correcciones',
+        pillStyle:`display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;background:${c[0]};color:${c[1]};font-weight:700;font-size:12.5px;white-space:nowrap;border:1px solid ${c[1]}22;${count>0?'':'opacity:.5;'}`,
+        badgeStyle:`background:${c[1]};color:#fff;font-size:11px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;`
+      };
+    });
+  }
+
+  buildDash(){
+    const cal = this.filteredCal();
+    const total = cal.length;
+    const st = (s)=> cal.filter(r=> r.estado===s).length;
+    const pendSet = ['Idea','Inspiración','Contenido','Producción','Aprobación','Correcciones'];
+    const pendientes = cal.filter(r=> pendSet.includes(r.estado)).length;
+    const enProd = cal.filter(r=> ['Contenido','Producción'].includes(r.estado)).length;
+    const aprob = st('Aprobado'), publ = st('Publicado'), progr = st('Programado');
+    const clientes = this.state.clientFilter!=='Todos' ? 1 : new Set(this.state.config.map(r=>r.cliente).filter(Boolean)).size;
+
+    const tint = (h)=> h+'1f';
+    const cards = [
+      {label:'Clientes activos',value:clientes,accent:'#2563eb',iconBg:tint('#2563eb'),d:'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8M22 21v-2a4 4 0 00-3-3.8M16 3.1a4 4 0 010 7.8'},
+      {label:'Contenidos del mes',value:total,accent:'#0ea5e9',iconBg:tint('#0ea5e9'),d:'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4'},
+      {label:'Pendientes',value:pendientes,accent:'#f59e0b',iconBg:tint('#f59e0b'),d:'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z'},
+      {label:'En producción',value:enProd,accent:'#8b5cf6',iconBg:tint('#8b5cf6'),d:'M4 7h16v13H4zM16 10l4-2.5v9L16 14'},
+      {label:'Aprobados',value:aprob,accent:'#16a34a',iconBg:tint('#16a34a'),d:'M12 3a9 9 0 100 18 9 9 0 000-18zM8.5 12l2.5 2.5L16 9'},
+      {label:'Publicados',value:publ,accent:'#1d4ed8',iconBg:tint('#1d4ed8'),d:'M22 2L11 13M22 2l-7 20-4-9-9-4z'}
+    ];
+
+    const legend = this.CAL_STATES.map(s=>({name:s,count:st(s),color:(this.COLORS[s]||['#ccc','#64748b'])[1]}));
+    const donutGradient = this.pie(legend.map(l=>({value:l.count,color:l.color})));
+
+    const pmax = Math.max(1, ...this.PLATFORMS.map(p=> cal.filter(r=>r.plataforma===p).length));
+    const platforms = this.PLATFORMS.map(p=>{ const c=cal.filter(r=>r.plataforma===p).length; return {label:p,count:c,pct:Math.round(c/pmax*100)}; });
+
+    const mi = this.MONTHS.indexOf(this.state.month);
+    const yr = Number(this.state.year);
+    const first = new Date(yr, mi, 1);
+    const offset = (first.getDay()+6)%7;
+    const dim = new Date(yr, mi+1, 0).getDate();
+    const countByDay = {};
+    cal.forEach(r=>{ if(r.fecha){ const d=new Date(r.fecha+'T00:00:00'); if(d.getFullYear()===yr && d.getMonth()===mi){ const dd=d.getDate(); countByDay[dd]=(countByDay[dd]||0)+1; } } });
+    const blankStyle='background:transparent;border-radius:9px;min-height:54px;';
+    const cells=[];
+    for(let i=0;i<offset;i++) cells.push({has:false,style:blankStyle});
+    for(let d=1;d<=dim;d++){
+      const c = countByDay[d]||0;
+      const bg = c>0 ? 'background:#eef4ff;border:1px solid #d6e4ff;' : 'background:#f8fafc;border:1px solid #eef1f5;';
+      cells.push({has:true,day:d,count:c,hasCount:c>0,style:`${bg}border-radius:9px;min-height:54px;padding:7px 8px;display:flex;flex-direction:column;gap:4px;`});
+    }
+
+    const kpis=[
+      {label:'Avance del mes (publicado)', value: (total?Math.round(publ/total*100):0)+'%'},
+      {label:'Tasa de aprobación', value:(total?Math.round((aprob+progr+publ)/total*100):0)+'%'},
+      {label:'En revisión', value: cal.filter(r=>['Aprobación','Correcciones'].includes(r.estado)).length},
+      {label:'Programados', value: progr}
+    ];
+
+    return {cards,total,legend,donutGradient,platforms,weekdays:['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],calCells:cells,kpis};
+  }
+
+  buildCalGrid(){
+    const cal = this.filteredCal();
+    const mi = this.MONTHS.indexOf(this.state.month), yr = Number(this.state.year);
+    const first = new Date(yr, mi, 1);
+    const offset = (first.getDay()+6)%7;
+    const dim = new Date(yr, mi+1, 0).getDate();
+    const byDay = {};
+    cal.forEach(r=>{ if(r.fecha){ const d=new Date(r.fecha+'T00:00:00'); if(d.getFullYear()===yr && d.getMonth()===mi){ const dd=d.getDate(); (byDay[dd]=byDay[dd]||[]).push(r); } } });
+
+    const blankStyle = 'background:transparent;border-radius:10px;min-height:104px;';
+    const dayStyle = 'background:#f8fafc;border:1px solid #eef1f5;border-radius:10px;min-height:104px;padding:8px;display:flex;flex-direction:column;gap:6px;';
+    const cells=[];
+    for(let i=0;i<offset;i++) cells.push({has:false,style:blankStyle});
+    for(let d=1;d<=dim;d++){
+      const items = (byDay[d]||[]).map(rr=>{
+        const pc = this.COLORS[rr.prioridad] ? this.COLORS[rr.prioridad][1] : '#cbd5e1';
+        return {
+          _id:rr._id, label:(rr.hook||rr.concepto||rr.copy||'Sin título'), platform:rr.plataforma||'—',
+          estado:rr.estado, prioridad:rr.prioridad,
+          cardStyle:`background:#fff;border:1px solid #eef1f5;border-left:3px solid ${pc};border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;gap:5px;`,
+          estadoStyle:this.chip(rr.estado)+'width:100%;',
+          prioStyle:this.chip(rr.prioridad)+'width:100%;',
+          onEstado:(e)=>this.update('calendar',rr._id,'estado',e.target.value),
+          onPrioridad:(e)=>this.update('calendar',rr._id,'prioridad',e.target.value)
+        };
+      });
+      cells.push({has:true,day:d,count:items.length,hasItems:items.length>0,items,style:dayStyle});
+    }
+    return {cells, weekdays:['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'], empty:cal.length===0, has:cal.length>0};
+  }
+
+  toDate(s){ return new Date(s+'T00:00:00'); }
+  dStr(d){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+  addDays(s,n){ const d=this.toDate(s); d.setDate(d.getDate()+n); return this.dStr(d); }
+  diffDays(a,b){ return Math.round((this.toDate(b)-this.toDate(a))/86400000); }
+  genPhases(fecha,estado){
+    if(!fecha) return {};
+    const phases=this.CAL_STATES.slice();
+    const total=phases.reduce((a,p)=>a+(this.PHASE_DUR[p]||1),0);
+    let cur=this.addDays(fecha,-(total-1)); const out={};
+    phases.forEach(p=>{ const dur=this.PHASE_DUR[p]||1; out[p]={s:cur,e:this.addDays(cur,dur-1)}; cur=this.addDays(cur,dur); });
+    return out;
+  }
+  initFases = (id)=> this.setState(s=>({calendar:s.calendar.map(r=> r._id===id ? {...r, fases:this.genPhases(r.fecha||this.dStr(new Date()), r.estado)} : r)}));
+  setPhase = (id,phase,field,val)=> this.setState(s=>({calendar:s.calendar.map(r=>{
+    if(r._id!==id) return r;
+    const f={...(r.fases||{})}; const cell={...(f[phase]||{}),[field]:val};
+    if(cell.s&&cell.e&&this.diffDays(cell.s,cell.e)<0){ if(field==='s') cell.e=val; else cell.s=val; }
+    f[phase]=cell; return {...r,fases:f};
+  })}));
+  setGanttMode = (m)=> this.setState({ganttMode:m});
+  toggleGantt = (id)=> this.setState(s=>({ganttExpanded:{...s.ganttExpanded,[id]:!s.ganttExpanded[id]}}));
+  toggleGanttAll = ()=> this.setState(s=>({ganttAllExpanded:!s.ganttAllExpanded, ganttExpanded:{}}));
+  beginDrag = (e,id,phase,mode)=>{
+    e.preventDefault(); e.stopPropagation();
+    const ctx=this._gctx; if(!ctx) return;
+    const item=this.state.calendar.find(r=>r._id===id); if(!item||!item.fases||!item.fases[phase]) return;
+    const orig={s:item.fases[phase].s, e:item.fases[phase].e}; const startX=e.clientX, dayW=ctx.dayW;
+    const move=(ev)=>{
+      const delta=Math.round((ev.clientX-startX)/dayW); let ns=orig.s, ne=orig.e;
+      if(mode==='move'){ ns=this.addDays(orig.s,delta); ne=this.addDays(orig.e,delta); }
+      else if(mode==='left'){ ns=this.addDays(orig.s,delta); if(this.diffDays(ns,orig.e)<0) ns=orig.e; }
+      else if(mode==='right'){ ne=this.addDays(orig.e,delta); if(this.diffDays(orig.s,ne)<0) ne=orig.s; }
+      this.setState(s=>({calendar:s.calendar.map(r=> r._id===id ? {...r,fases:{...r.fases,[phase]:{s:ns,e:ne}}} : r)}));
+    };
+    const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); document.body.style.userSelect=''; document.body.style.cursor=''; };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+    document.body.style.userSelect='none'; document.body.style.cursor = mode==='move'?'grabbing':'ew-resize';
+  };
+
+  buildGantt(){
+    const cal = this.filteredCal();
+    const mi = this.MONTHS.indexOf(this.state.month), yr = Number(this.state.year);
+    const dim = new Date(yr, mi+1, 0).getDate();
+    const mode = this.state.ganttMode||'month';
+    const monthStart=this.dStr(new Date(yr,mi,1)), monthEnd=this.dStr(new Date(yr,mi,dim));
+    let raw = cal.filter(r=> (r.fases&&Object.keys(r.fases).length) || r.fecha);
+
+    let rangeStart, rangeEnd;
+    if(mode==='full'){
+      let mn=null,mx=null;
+      raw.forEach(r=>{ const ph=r.fases||{}; Object.values(ph).forEach(p=>{ if(p.s&&(!mn||p.s<mn))mn=p.s; if(p.e&&(!mx||p.e>mx))mx=p.e; }); if(r.fecha){ if(!mn||r.fecha<mn)mn=r.fecha; if(!mx||r.fecha>mx)mx=r.fecha; } });
+      rangeStart=mn||monthStart; rangeEnd=mx||monthEnd;
+    } else {
+      rangeStart=monthStart; rangeEnd=monthEnd;
+      raw = raw.filter(r=>{ const ph=r.fases||{}; const inM=Object.values(ph).some(p=> p.s&&p.s<=monthEnd&&p.e>=monthStart); if(inM) return true; if(r.fecha){ const d=this.toDate(r.fecha); return d.getFullYear()===yr&&d.getMonth()===mi; } return false; });
+    }
+    const totalDays=Math.max(1,this.diffDays(rangeStart,rangeEnd)+1);
+    const dayW = mode==='full'?30:38, labelW=232;
+    const trackW=totalDays*dayW, totalW=labelW+trackW;
+    this._gctx={rangeStart,dayW};
+    const gridBg=`background-image:repeating-linear-gradient(90deg,#eef1f5 0,#eef1f5 1px,transparent 1px,transparent ${dayW}px);`;
+
+    const days=[];
+    for(let i=0;i<totalDays;i++){ const d=this.toDate(this.addDays(rangeStart,i)); const wend=[0,6].includes(d.getDay()); days.push({d:d.getDate(), dayStyle:`position:absolute;left:${i*dayW}px;top:0;width:${dayW}px;height:100%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:${wend?'#c4a6a6':'#94a3b8'};border-left:1px solid #eef1f5;${wend?'background:#fafafa;':''}`}); }
+    const bands=[]; let bi=0;
+    while(bi<totalDays){ const d=this.toDate(this.addDays(rangeStart,bi)); const mk=d.getMonth()+'-'+d.getFullYear(); let span=0; while(bi+span<totalDays){ const dd=this.toDate(this.addDays(rangeStart,bi+span)); if((dd.getMonth()+'-'+dd.getFullYear())!==mk) break; span++; } bands.push({label:this.MONTHS[d.getMonth()]+' '+d.getFullYear(), style:`position:absolute;left:${bi*dayW}px;top:0;width:${span*dayW}px;height:24px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:800;color:#475569;border-left:1px solid #e2e8f0;`}); bi+=span; }
+
+    const allExp=this.state.ganttAllExpanded, expMap=this.state.ganttExpanded||{};
+    const items=raw.map(rr=>{
+      const hasFases=!!(rr.fases&&Object.keys(rr.fases).length);
+      const label=(rr.hook||rr.concepto||rr.copy||'Sin título');
+      const expanded=allExp||!!expMap[rr._id];
+      const phases=this.CAL_STATES.filter(p=> hasFases&&rr.fases[p]&&rr.fases[p].s&&rr.fases[p].e).map(p=>{
+        const f=rr.fases[p], cc=this.COLORS[p]||['#eef2f7','#475569'];
+        const off=this.diffDays(rangeStart,f.s), span=this.diffDays(f.s,f.e)+1, cur=p===rr.estado;
+        return {
+          key:p, name:p, sDate:f.s, eDate:f.e, dotColor:cc[1],
+          onS:(e)=>this.setPhase(rr._id,p,'s',e.target.value),
+          onE:(e)=>this.setPhase(rr._id,p,'e',e.target.value),
+          onMove:(e)=>this.beginDrag(e,rr._id,p,'move'),
+          onLeft:(e)=>this.beginDrag(e,rr._id,p,'left'),
+          onRight:(e)=>this.beginDrag(e,rr._id,p,'right'),
+          barStyle:`position:absolute;top:7px;left:${off*dayW}px;width:${Math.max(dayW,span*dayW)-3}px;height:24px;background:${cc[1]};border-radius:6px;display:flex;align-items:center;justify-content:space-between;padding:0 7px;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;cursor:grab;${cur?'outline:2px solid '+cc[1]+';outline-offset:2px;':''}`,
+          hlStyle:`position:absolute;left:0;top:0;width:8px;height:100%;cursor:ew-resize;`,
+          hrStyle:`position:absolute;right:0;top:0;width:8px;height:100%;cursor:ew-resize;`
+        };
+      });
+      let sStart,sEnd;
+      if(phases.length){ sStart=phases.map(p=>p.sDate).reduce((a,b)=>a<b?a:b); sEnd=phases.map(p=>p.eDate).reduce((a,b)=>a>b?a:b); }
+      else if(rr.fecha){ const sp=this.LEAD[rr.formato]||2; sStart=this.addDays(rr.fecha,-(sp-1)); sEnd=rr.fecha; }
+      else { sStart=rangeStart; sEnd=rangeStart; }
+      const cc=this.COLORS[rr.estado]||['#eef2f7','#475569'];
+      const soff=this.diffDays(rangeStart,sStart), sspan=this.diffDays(sStart,sEnd)+1;
+      return {
+        _id:rr._id, label, client:rr.cliente||'—', platform:rr.plataforma||'', estado:rr.estado,
+        expanded, hasFases, noFases:!hasFases, phases, _sort:soff,
+        onToggle:()=>this.toggleGantt(rr._id), onInit:()=>this.initFases(rr._id),
+        onEstado:(e)=>this.update('calendar',rr._id,'estado',e.target.value),
+        chevStyle:`transition:transform .15s;transform:rotate(${expanded?90:0}deg);`,
+        estadoStyle:this.chip(rr.estado)+'width:148px;margin-top:5px;',
+        titleAttr:`${label} · ${rr.cliente||''} · ${rr.plataforma||''}`,
+        sumBarStyle:`position:absolute;top:10px;left:${soff*dayW}px;width:${Math.max(dayW,sspan*dayW)-3}px;height:26px;background:${cc[1]};border-radius:6px;display:flex;align-items:center;padding:0 9px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(15,31,61,.2);`
+      };
+    });
+    items.sort((a,b)=> a._sort-b._sort);
+
+    const seg=(on)=>`padding:7px 13px;border:none;border-radius:7px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;${on?'background:#2563eb;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.28);':'background:transparent;color:#64748b;'}`;
+    return {
+      items, days, bands, empty:items.length===0, has:items.length>0,
+      onMonth:()=>this.setGanttMode('month'), onFull:()=>this.setGanttMode('full'),
+      monthBtnStyle:seg(mode==='month'), fullBtnStyle:seg(mode==='full'),
+      onToggleAll:this.toggleGanttAll, expandAllLabel:allExp?'Colapsar fases':'Expandir fases',
+      expandAllStyle:`display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid ${allExp?'#c7d7f5':'#e8edf3'};border-radius:9px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;background:${allExp?'#eef4ff':'#fff'};color:${allExp?'#2563eb':'#64748b'};`,
+      innerStyle:`width:${totalW}px;`,
+      labelHeadStyle:`flex:0 0 ${labelW}px;width:${labelW}px;position:sticky;left:0;z-index:3;background:#f8fafc;height:54px;display:flex;align-items:flex-end;padding:0 14px 7px;font-size:11.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;border-right:1px solid #e8edf3;`,
+      headTrackStyle:`position:relative;width:${trackW}px;height:54px;`,
+      bandRowStyle:`position:absolute;left:0;top:0;width:${trackW}px;height:24px;border-bottom:1px solid #eef1f5;`,
+      dayRowStyle:`position:absolute;left:0;top:24px;width:${trackW}px;height:30px;`,
+      rowLabelStyle:`flex:0 0 ${labelW}px;width:${labelW}px;position:sticky;left:0;z-index:2;background:#fff;padding:8px 12px;display:flex;flex-direction:column;gap:2px;justify-content:center;border-right:1px solid #e8edf3;`,
+      trackStyle:`position:relative;width:${trackW}px;min-height:46px;${gridBg}`,
+      phaseLabelStyle:`flex:0 0 ${labelW}px;width:${labelW}px;position:sticky;left:0;z-index:2;background:#fcfdfe;padding:6px 12px 6px 32px;display:flex;flex-direction:column;gap:4px;justify-content:center;border-right:1px solid #e8edf3;`,
+      phaseTrackStyle:`position:relative;width:${trackW}px;min-height:38px;background:#fcfdfe;${gridBg}`,
+      dateInputStyle:`width:84px;height:24px;border:1px solid #e2e8f0;border-radius:6px;font:inherit;font-size:10px;color:#475569;padding:0 4px;outline:none;background:#fff;`
+    };
+  }
+
+  setAn = (tab,kind,val)=> this.setState(s=>{
+    if(kind==='group') return {anGroupBy:{...s.anGroupBy,[tab]:val}};
+    if(kind==='metric') return {anMetric:{...s.anMetric,[tab]:val}};
+    return {anChart:{...s.anChart,[tab]:val}};
+  });
+  setAnFilter = (tab,key,val)=> this.setState(s=>({anFilters:{...s.anFilters,[tab]:{...s.anFilters[tab],[key]:val}}}));
+  clearAnFilters = (tab)=> this.setState(s=>({anFilters:{...s.anFilters,[tab]:{}}}));
+
+  fmtMetric(v,kind){
+    v = v||0;
+    if(kind==='money') return '$'+this.fmt(v);
+    if(kind==='money2') return '$'+v.toFixed(2);
+    if(kind==='pct') return v.toFixed(2)+'%';
+    if(kind==='x') return v.toFixed(2)+'x';
+    if(kind==='dec') return v.toFixed(1);
+    return this.fmt(v);
+  }
+
+  segStyle(on){ return `padding:7px 12px;border:1px solid ${on?'#2563eb':'#e8edf3'};border-radius:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;background:${on?'#2563eb':'#fff'};color:${on?'#fff':'#64748b'};white-space:nowrap;`; }
+  iconBtnStyle(on){ return `display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid ${on?'#2563eb':'#e8edf3'};border-radius:8px;cursor:pointer;font:inherit;font-size:12px;font-weight:600;background:${on?'#eef4ff':'#fff'};color:${on?'#2563eb':'#94a3b8'};white-space:nowrap;`; }
+
+  analyticsCfg(tab){
+    const sum=(rows,k)=>rows.reduce((a,r)=>a+(parseFloat(r[k])||0),0);
+    if(tab==='reports'){
+      return {
+        dimDefs:[{key:'cliente',label:'Cliente'},{key:'plataforma',label:'Plataforma'},{key:'formato',label:'Formato'},{key:'mes',label:'Mes'}],
+        metricOptions:[
+          {key:'alcance',label:'Alcance',fmt:'int'},{key:'impresiones',label:'Impresiones',fmt:'int'},
+          {key:'interacciones',label:'Interacciones',fmt:'int'},{key:'guardados',label:'Guardados',fmt:'int'},
+          {key:'compartidos',label:'Compartidos',fmt:'int'},{key:'leads',label:'Leads',fmt:'int'},
+          {key:'ventas',label:'Ventas',fmt:'int'},{key:'roi',label:'ROI (prom.)',fmt:'x',agg:'avg'}
+        ],
+        filters:[{key:'plataforma',label:'Plataforma',opts:this.PLATFORMS},{key:'formato',label:'Formato',opts:this.FORMATS},{key:'mes',label:'Mes',opts:this.MONTHS}],
+        cards:(rows)=>{
+          const roiAvg=rows.length? sum(rows,'roi')/rows.length:0;
+          const al=sum(rows,'alcance'); const er=al? sum(rows,'interacciones')/al*100:0;
+          return [
+            {label:'Alcance',value:this.fmt(al),accent:'#0f1f3d'},
+            {label:'Impresiones',value:this.fmt(sum(rows,'impresiones')),accent:'#0f1f3d'},
+            {label:'Interacciones',value:this.fmt(sum(rows,'interacciones')),accent:'#2563eb'},
+            {label:'Engagement',value:er.toFixed(1)+'%',accent:'#2563eb',sub:'Interacciones / alcance'},
+            {label:'Guardados',value:this.fmt(sum(rows,'guardados')),accent:'#0f1f3d'},
+            {label:'Compartidos',value:this.fmt(sum(rows,'compartidos')),accent:'#0f1f3d'},
+            {label:'Leads',value:this.fmt(sum(rows,'leads')),accent:'#16a34a'},
+            {label:'Ventas',value:this.fmt(sum(rows,'ventas')),accent:'#16a34a'},
+            {label:'ROI promedio',value:roiAvg.toFixed(1)+'x',accent:'#8b5cf6'}
+          ];
+        },
+        summaryCols:[
+          {key:'alcance',label:'Alcance',fmt:'int'},{key:'impresiones',label:'Impresiones',fmt:'int'},
+          {key:'interacciones',label:'Interacc.',fmt:'int'},{key:'guardados',label:'Guard.',fmt:'int'},
+          {key:'compartidos',label:'Compart.',fmt:'int'},{key:'leads',label:'Leads',fmt:'int'},
+          {key:'ventas',label:'Ventas',fmt:'int'},{key:'roi',label:'ROI',fmt:'x',agg:'avg'}
+        ]
+      };
+    }
+    return {
+      dimDefs:[{key:'plataforma',label:'Plataforma'},{key:'cliente',label:'Cliente'},{key:'campania',label:'Campaña'},{key:'objetivo',label:'Objetivo'},{key:'formato',label:'Formato'},{key:'mes',label:'Mes'}],
+      metricOptions:[
+        {key:'gasto',label:'Inversión',fmt:'money'},{key:'presupuesto',label:'Presupuesto',fmt:'money'},
+        {key:'impresiones',label:'Impresiones',fmt:'int'},{key:'clics',label:'Clics',fmt:'int'},
+        {key:'conversiones',label:'Conversiones',fmt:'int'},{key:'ingresos',label:'Ingresos',fmt:'money'},
+        {key:'ctr',label:'CTR',fmt:'pct',derived:(r)=>{const i=sum(r,'impresiones');return i?sum(r,'clics')/i*100:0;}},
+        {key:'cpc',label:'CPC',fmt:'money2',derived:(r)=>{const c=sum(r,'clics');return c?sum(r,'gasto')/c:0;}},
+        {key:'cpm',label:'CPM',fmt:'money2',derived:(r)=>{const i=sum(r,'impresiones');return i?sum(r,'gasto')/i*1000:0;}},
+        {key:'cpa',label:'CPA',fmt:'money2',derived:(r)=>{const c=sum(r,'conversiones');return c?sum(r,'gasto')/c:0;}},
+        {key:'roas',label:'ROAS',fmt:'x',derived:(r)=>{const g=sum(r,'gasto');return g?sum(r,'ingresos')/g:0;}}
+      ],
+      filters:[{key:'plataforma',label:'Plataforma',opts:this.AD_PLATFORMS},{key:'objetivo',label:'Objetivo',opts:this.AD_OBJECTIVES},{key:'estado',label:'Estado',opts:this.AD_STATES},{key:'mes',label:'Mes',opts:this.MONTHS}],
+      cards:(rows)=>{
+        const g=sum(rows,'gasto'),imp=sum(rows,'impresiones'),cl=sum(rows,'clics'),conv=sum(rows,'conversiones'),ing=sum(rows,'ingresos'),pre=sum(rows,'presupuesto');
+        return [
+          {label:'Inversión',value:'$'+this.fmt(g),accent:'#0f1f3d',sub:'de $'+this.fmt(pre)+' presupuestado'},
+          {label:'Impresiones',value:this.fmt(imp),accent:'#0f1f3d'},
+          {label:'Clics',value:this.fmt(cl),accent:'#2563eb'},
+          {label:'CTR',value:(imp?cl/imp*100:0).toFixed(2)+'%',accent:'#2563eb'},
+          {label:'CPC',value:'$'+(cl?g/cl:0).toFixed(2),accent:'#0f1f3d'},
+          {label:'CPM',value:'$'+(imp?g/imp*1000:0).toFixed(2),accent:'#0f1f3d'},
+          {label:'Conversiones',value:this.fmt(conv),accent:'#16a34a'},
+          {label:'CPA',value:'$'+(conv?g/conv:0).toFixed(2),accent:'#16a34a'},
+          {label:'ROAS',value:(g?ing/g:0).toFixed(2)+'x',accent:'#8b5cf6',sub:'$'+this.fmt(ing)+' en ingresos'}
+        ];
+      },
+      summaryCols:[
+        {key:'presupuesto',label:'Presup.',fmt:'money'},{key:'gasto',label:'Inversión',fmt:'money'},
+        {key:'impresiones',label:'Impr.',fmt:'int'},{key:'clics',label:'Clics',fmt:'int'},
+        {key:'ctr',label:'CTR',fmt:'pct',derived:(r)=>{const i=sum(r,'impresiones');return i?sum(r,'clics')/i*100:0;}},
+        {key:'cpc',label:'CPC',fmt:'money2',derived:(r)=>{const c=sum(r,'clics');return c?sum(r,'gasto')/c:0;}},
+        {key:'conversiones',label:'Conv.',fmt:'int'},
+        {key:'cpa',label:'CPA',fmt:'money2',derived:(r)=>{const c=sum(r,'conversiones');return c?sum(r,'gasto')/c:0;}},
+        {key:'roas',label:'ROAS',fmt:'x',derived:(r)=>{const gg=sum(r,'gasto');return gg?sum(r,'ingresos')/gg:0;}}
+      ]
+    };
+  }
+
+  buildLine(entries,metricDef){
+    const W=720,H=240,padL=58,padR=20,padT=20,padB=38;
+    const innerW=W-padL-padR, innerH=H-padT-padB;
+    const n=entries.length;
+    const max=Math.max(1,...entries.map(e=>e.value));
+    const xat=(i)=> n<=1? padL+innerW/2 : padL+(i/(n-1))*innerW;
+    const yat=(v)=> padT+innerH-(v/max)*innerH;
+    const dots=entries.map((e,i)=>{ const x=xat(i),y=yat(e.value); return {x,y,vy:y-9,label:e.label,value:this.fmtMetric(e.value,metricDef.fmt)}; });
+    let linePath='',areaPath='';
+    if(dots.length===1){ linePath='M'+(dots[0].x-30)+' '+dots[0].y+' L'+(dots[0].x+30)+' '+dots[0].y; }
+    else if(dots.length){ linePath='M'+dots.map(d=>d.x+' '+d.y).join(' L'); }
+    if(dots.length){ areaPath=linePath+` L${dots[dots.length-1].x} ${padT+innerH} L${dots[0].x} ${padT+innerH} Z`; }
+    const grid=[0,0.25,0.5,0.75,1].map(t=>{ const y=padT+innerH-t*innerH; return {y,ty:y+3,value:this.fmtMetric(max*t,metricDef.fmt),x1:padL,x2:W-padR}; });
+    const labels=dots.map(d=>({x:d.x,ly:H-12,label:d.label}));
+    return {W,H,linePath,areaPath,dots,grid,labels};
+  }
+
+  buildAnalytics(tab){
+    const cfg=this.analyticsCfg(tab);
+    const sum=(rows,k)=>rows.reduce((a,r)=>a+(parseFloat(r[k])||0),0);
+    let rows=this.state[tab].slice();
+    if(this.state.clientFilter!=='Todos') rows=rows.filter(r=>r.cliente===this.state.clientFilter);
+    const fvals=this.state.anFilters[tab]||{};
+    cfg.filters.forEach(f=>{ if(fvals[f.key]) rows=rows.filter(r=>r[f.key]===fvals[f.key]); });
+
+    const groupBy=this.state.anGroupBy[tab];
+    const metricKey=this.state.anMetric[tab];
+    const metricDef=cfg.metricOptions.find(m=>m.key===metricKey)||cfg.metricOptions[0];
+    const chartType=this.state.anChart[tab];
+
+    const calc=(grows,def)=>{
+      if(def.derived) return def.derived(grows);
+      if(def.agg==='avg') return grows.length? sum(grows,def.key)/grows.length:0;
+      return sum(grows,def.key);
+    };
+
+    const gmap={};
+    rows.forEach(r=>{ const k=(r[groupBy]||'').toString().trim()||'—'; (gmap[k]=gmap[k]||[]).push(r); });
+    const order=(groupBy==='mes')?this.MONTHS:null;
+    let entries=Object.keys(gmap).map(k=>({label:k,value:calc(gmap[k],metricDef),rows:gmap[k]}));
+    if(order) entries.sort((a,b)=>order.indexOf(a.label)-order.indexOf(b.label));
+    else entries.sort((a,b)=>b.value-a.value);
+
+    const pal=['#2563eb','#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ec4899','#14b8a6','#6366f1','#f43f5e'];
+    const max=Math.max(1,...entries.map(e=>e.value));
+    const bars=entries.map((e,i)=>({label:e.label,value:this.fmtMetric(e.value,metricDef.fmt),pct:Math.max(2,Math.round(e.value/max*100)),color:pal[i%pal.length]}));
+
+    const donutSegs=entries.filter(e=>e.value>0);
+    const donutTotal=donutSegs.reduce((a,s)=>a+s.value,0);
+    const donut={
+      gradient:this.pie(donutSegs.map((s,i)=>({value:s.value,color:pal[i%pal.length]}))),
+      total:this.fmtMetric(donutTotal,metricDef.fmt),
+      legend:donutSegs.map((s,i)=>({name:s.label,color:pal[i%pal.length],value:this.fmtMetric(s.value,metricDef.fmt),pct:donutTotal?Math.round(s.value/donutTotal*100):0}))
+    };
+
+    const line=this.buildLine(entries,metricDef);
+
+    const summaryCols=cfg.summaryCols;
+    const dimLabel=(cfg.dimDefs.find(d=>d.key===groupBy)||{}).label||groupBy;
+    const thL='text-align:left;padding:11px 16px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;background:#f8fafc;';
+    const thR=thL.replace('text-align:left','text-align:right');
+    const tdL='padding:10px 16px;font-size:12.5px;font-weight:600;color:#1e293b;text-align:left;white-space:nowrap;';
+    const tdR='padding:10px 16px;font-size:12.5px;font-weight:600;color:#475569;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;';
+    const tdTL='padding:12px 16px;font-size:12.5px;font-weight:800;color:#0f1f3d;text-align:left;white-space:nowrap;';
+    const tdTR='padding:12px 16px;font-size:12.5px;font-weight:800;color:#0f1f3d;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;';
+    const headCols=[{label:dimLabel,thStyle:thL}, ...summaryCols.map(c=>({label:c.label,thStyle:thR}))];
+    const sumRows=entries.map((e,i)=>({cells:[
+      {isLabel:true,value:e.label,dotStyle:`width:9px;height:9px;border-radius:3px;background:${pal[i%pal.length]};flex:none;`,tdStyle:tdL},
+      ...summaryCols.map(c=>({isVal:true,value:this.fmtMetric(calc(e.rows,c),c.fmt),tdStyle:tdR}))
+    ]}));
+    const totalCells=[{value:'Total',tdStyle:tdTL}, ...summaryCols.map(c=>({value:this.fmtMetric(calc(rows,c),c.fmt),tdStyle:tdTR}))];
+
+    const dims=cfg.dimDefs.map(d=>({label:d.label,onClick:()=>this.setAn(tab,'group',d.key),style:this.segStyle(groupBy===d.key)}));
+    const chartTypes=[
+      {key:'bar',label:'Barras',d:'M4 20V10M10 20V4M16 20v-7M22 20V8'},
+      {key:'donut',label:'Dona',d:'M12 3a9 9 0 109 9h-9z'},
+      {key:'line',label:'Tendencia',d:'M3 17l5-6 4 3 8-9'}
+    ].map(t=>({label:t.label,d:t.d,onClick:()=>this.setAn(tab,'chart',t.key),style:this.iconBtnStyle(chartType===t.key)}));
+    const filters=cfg.filters.map(f=>({
+      value:fvals[f.key]||'',
+      options:[{value:'',label:f.label+': Todos'}, ...f.opts.map(o=>({value:o,label:o}))],
+      onChange:(e)=>this.setAnFilter(tab,f.key,e.target.value)
+    }));
+
+    return {
+      filters, onClear:()=>this.clearAnFilters(tab), hasFilters:Object.values(fvals).some(Boolean),
+      dims, metricValue:metricKey, metricOptions:cfg.metricOptions.map(m=>({value:m.key,label:m.label})),
+      onMetric:(e)=>this.setAn(tab,'metric',e.target.value), chartTypes,
+      cards:cfg.cards(rows).map(c=>({...c,hasSub:!!c.sub})),
+      chartTitle:metricDef.label+' por '+dimLabel,
+      empty:entries.length===0, has:entries.length>0,
+      isBar:chartType==='bar', isDonut:chartType==='donut', isLine:chartType==='line',
+      bars, donut, line,
+      summary:{columns:headCols, rows:sumRows, totalCells, hasRows:sumRows.length>0},
+      dimLabel
+    };
+  }
+
+  renderVals(){
+    const a = this.state.active;
+    const navDefs=[
+      {key:'dashboard',label:'Dashboard',d:'M4 4h6v6H4zM14 4h6v6h-6zM14 14h6v6h-6zM4 14h6v6H4z'},
+      {key:'config',label:'Estrategia del Mes',d:'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9zM12 11a1 1 0 100 2 1 1 0 000-2z'},
+      {key:'inspo',label:'Inspo Hub',d:'M9 18h6M10 21h4M12 3a6 6 0 00-3.7 10.7c.5.4.7 1 .7 1.6v.7h6v-.7c0-.6.2-1.2.7-1.6A6 6 0 0012 3z'},
+      {key:'prompts',label:'Banco de Prompts',d:'M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8zM18 14l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z'},
+      {key:'calendar',label:'Calendario',d:'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4'},
+      {key:'production',label:'Producción',d:'M4 7h16v13H4zM16 10l4-2.5v9L16 14M4 7l2-3M9 7l2-3M14 7l2-3'},
+      {key:'approvals',label:'Aprobaciones',d:'M12 3a9 9 0 100 18 9 9 0 000-18zM8.5 12l2.5 2.5L16 9'},
+      {key:'assets',label:'Biblioteca de Assets',d:'M4 5h6l2 2h8v12H4zM4 5v14'},
+      {key:'reports',label:'Reportes',d:'M4 20V11M9.5 20V5M15 20v-6M20.5 20V8M3 20h18'},
+      {key:'ads',label:'Ads / Pauta',d:'M3 10v4h3l5 4V6L6 10H3zM15 9a3 3 0 010 6M18 6a7 7 0 010 12'}
+    ];
+    const navItems = navDefs.map(n=>{
+      const on = a===n.key;
+      let cnt = n.key!=='dashboard' ? (this.state[n.key]||[]).length : 0;
+      if(n.key==='calendar') cnt = this.state.calendar.filter(r=> !r.archived).length;
+      return {
+        label:n.label, d:n.d, onClick:()=>this.setActive(n.key),
+        btnStyle:`display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:none;border-radius:10px;font:inherit;font-size:13.5px;cursor:pointer;text-align:left;transition:all .15s;${on?'background:#2563eb;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(37,99,235,.3);':'background:transparent;color:#9fb0c9;font-weight:500;'}`,
+        hoverStyle: on?'':'background:rgba(255,255,255,.07);color:#cfdbee;',
+        hasCount: cnt>0,
+        count: cnt,
+        badgeStyle:`background:${on?'rgba(255,255,255,.22)':'rgba(255,255,255,.10)'};color:${on?'#fff':'#aebdd4'};font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px;min-width:20px;text-align:center;`
+      };
+    });
+
+    if(a==='calendar' || a==='archived'){
+      const archCount = this.state.calendar.filter(r=> r.archived).length;
+      const onA = a==='archived';
+      const calIdx = navDefs.findIndex(n=>n.key==='calendar');
+      navItems.splice(calIdx+1, 0, {
+        label:'Contenido archivado', d:'M4 8h16v12H4zM3 4h18v4H3zM10 12h4',
+        onClick:()=>this.setActive('archived'),
+        btnStyle:`display:flex;align-items:center;gap:10px;width:calc(100% - 18px);margin-left:18px;padding:8px 11px;border:none;border-radius:9px;font:inherit;font-size:12.5px;cursor:pointer;text-align:left;transition:all .15s;${onA?'background:#2563eb;color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(37,99,235,.3);':'background:rgba(255,255,255,.05);color:#9fb0c9;font-weight:500;'}`,
+        hoverStyle: onA?'':'background:rgba(255,255,255,.1);color:#cfdbee;',
+        hasCount: archCount>0, count:archCount,
+        badgeStyle:`background:${onA?'rgba(255,255,255,.22)':'rgba(255,255,255,.1)'};color:${onA?'#fff':'#aebdd4'};font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;min-width:18px;text-align:center;`
+      });
+    }
+
+    const metaMap={
+      dashboard:['Dashboard ejecutivo','Visión general del mes en curso'],
+      config:['Configuración estratégica','Define objetivos, audiencia y referencias por cliente'],
+      inspo:['Inspo Hub','Base de inspiración, tendencias y referencias'],
+      prompts:['Banco de Prompts IA','Prompts reutilizables por tipo y objetivo'],
+      calendar:['Calendario de contenidos','El corazón del sistema · planeación editorial'],
+      production:['Producción','Grabaciones, diseño y entregables'],
+      approvals:['Aprobaciones','Control de revisiones y aprobaciones de cliente'],
+      assets:['Biblioteca de Assets','Recursos, plantillas y archivos por cliente'],
+      reports:['Reportes','Resultados y desempeño por cliente y plataforma'],
+      ads:['Ads / Pauta','Campañas pagadas · inversión, resultados y ROAS'],
+      archived:['Contenido archivado','Contenidos programados y completados, fuera del flujo activo']
+    };
+    const meta = {title:metaMap[a][0], subtitle:metaMap[a][1]};
+
+    const isArchived = a==='archived';
+    const isCalendar = a==='calendar';
+    const calView = this.state.calView;
+    const isCalGrid = isCalendar && calView==='calendar';
+    const isCalGantt = isCalendar && calView==='gantt';
+    const showTable = a!=='dashboard' && !isArchived && !(isCalendar && calView!=='table');
+    const showAddBtn = a!=='dashboard' && !isArchived;
+    const clientOptions = ['Todos', ...Array.from(new Set(this.state.config.map(r=>r.cliente).filter(Boolean)))];
+
+    const out = {
+      navItems, meta,
+      month:this.state.month, year:this.state.year, clientFilter:this.state.clientFilter,
+      monthOptions:this.MONTHS, yearOptions:this.YEARS, clientOptions,
+      onMonth:(e)=>this.setState({month:e.target.value}),
+      onYear:(e)=>this.setState({year:e.target.value}),
+      onClientFilter:(e)=>this.setState({clientFilter:e.target.value}),
+      onAddRow:this.addRow,
+      onToggleDemo:this.toggleDemo,
+      demoBtnLabel: this.state.demoOn?'Vaciar datos':'Cargar ejemplo',
+      demoBtnStyle:`margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:${this.state.demoOn?'rgba(220,38,38,.16)':'rgba(255,255,255,.06)'};color:${this.state.demoOn?'#fca5a5':'#cfdbee'};font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;`,
+      isDashboard: a==='dashboard',
+      isReports: a==='reports', isAds: a==='ads', showAnalytics: a==='reports'||a==='ads',
+      isCalendar, isCalGrid, isCalGantt, isArchived,
+      showTable, showAddBtn
+    };
+
+    if(a==='dashboard') out.dash = this.buildDash();
+    if(a==='reports' || a==='ads') out.analytics = this.buildAnalytics(a);
+    if(showTable) out.table = this.buildTable(a);
+    if(isArchived){
+      out.archived = this.buildArchived();
+      out.estadoOptions = [{value:'',label:'—'}, ...this.CAL_STATES.map(s=>({value:s,label:s}))];
+    }
+
+    if(a==='dashboard' || isCalendar) out.flowStages = this.buildFlow();
+
+    if(isCalendar){
+      out.calViews = [
+        {key:'table',label:'Tabla',d:'M3 6h18M3 12h18M3 18h18'},
+        {key:'calendar',label:'Calendario',d:'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4'},
+        {key:'gantt',label:'Gantt',d:'M4 6h10M4 12h14M4 18h7'}
+      ].map(v=>{
+        const on = calView===v.key;
+        return {label:v.label, d:v.d, onClick:()=>this.setCalView(v.key),
+          style:`display:flex;align-items:center;gap:7px;padding:8px 15px;border:none;border-radius:8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;${on?'background:#2563eb;color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.28);':'background:transparent;color:#64748b;'}`};
+      });
+    }
+
+    if(isCalGrid || isCalGantt){
+      out.estadoOptions = [{value:'',label:'—'}, ...this.CAL_STATES.map(s=>({value:s,label:s}))];
+      out.prioOptions = [{value:'',label:'—'}, ...this.PRIORITY.map(s=>({value:s,label:s}))];
+    }
+    if(isCalGrid) out.calGrid = this.buildCalGrid();
+    if(isCalGantt) out.gantt = this.buildGantt();
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>
