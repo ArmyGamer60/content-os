@@ -16,15 +16,15 @@
 <body>
   <div id="app"></div>
 
-  <!-- Firebase Compat (más compatible) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ========================================
-    // CONFIGURACIÓN (PRIMERO)
-    // ========================================
+    // VARIABLES GLOBALES - DECLARADAS PRIMERO
+    let app, auth, db;
+    let state = { user: null, active: 'calendar', calendar: [], production: [], reports: [], ads: [] };
+
     const firebaseConfig = {
   apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
   authDomain: "content-os-97b63.firebaseapp.com",
@@ -34,119 +34,47 @@
   appId: "1:707594487675:web:fd98225e864bea56025fde"
 };
 
-    console.log('📄 index.html cargó');
-    
-    // Esperar a que Firebase esté disponible
-    let retries = 0;
-    const maxRetries = 10;
-    
-    function checkFirebase() {
-      retries++;
-      console.log(`Intento ${retries}: Firebase =`, typeof firebase);
-      
-      if (typeof firebase !== 'undefined' && firebase.apps !== undefined) {
-        console.log('✅ Firebase SDK disponible');
-        initApp();
-      } else if (retries < maxRetries) {
-        setTimeout(checkFirebase, 500);
-      } else {
-        console.error('❌ Firebase no cargó después de', maxRetries, 'intentos');
-        showError('Firebase no pudo cargar. Recarga la página.');
+    console.log('📄 Página cargó');
+
+    // ESPERAR FIREBASE
+    let intentos = 0;
+    function esperar() {
+      intentos++;
+      console.log('Intento', intentos, ':', typeof firebase);
+      if (typeof firebase !== 'undefined') {
+        console.log('✅ Firebase disponible');
+        iniciar();
+      } else if (intentos < 10) {
+        setTimeout(esperar, 500);
       }
     }
-    
-    checkFirebase();
+    esperar();
 
-    let app, auth, db;
-
-    function initApp() {
+    // INICIALIZAR
+    function iniciar() {
       try {
-        console.log('🔥 Inicializando Firebase...');
-        
+        console.log('Inicializando...');
         if (!firebase.apps.length) {
           app = firebase.initializeApp(firebaseConfig);
-        } else {
-          app = firebase.app();
         }
-        
         auth = firebase.auth();
         db = firebase.firestore();
+        console.log('✅ Firebase OK');
         
-        console.log('✅ Firebase inicializado: projectId =', firebaseConfig.projectId);
-        
-        setupAuth();
+        auth.onAuthStateChanged(user => {
+          console.log('Usuario:', user?.email || 'anónimo');
+          state.user = user;
+          render();
+          if (user) escuchar();
+        });
         render();
-      } catch (err) {
-        console.error('❌ Error:', err);
-        showError('Error: ' + err.message);
+      } catch (e) {
+        console.error('Error:', e.message);
       }
     }
 
-    function showError(msg) {
-      document.getElementById('app').innerHTML = `
-        <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0f1f3d,#0c1a33);display:flex;align-items:center;justify-content:center;">
-          <div style="background:#fff;border-radius:16px;padding:48px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;">
-            <div style="width:56px;height:56px;border-radius:12px;background:#fee2e2;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#dc2626;">!</div>
-            <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f1f3d;">Error</h1>
-            <p style="margin:0 0 16px;font-size:14px;color:#64748b;">${msg}</p>
-            <button onclick="location.reload()" style="background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;">Recargar</button>
-          </div>
-        </div>
-      `;
-    }
-
-    // ========================================
-    // ESTADO
-    // ========================================
-    let state = {
-      user: null,
-      active: 'calendar',
-      calendar: [],
-      production: [],
-      reports: [],
-      ads: []
-    };
-
-    // ========================================
-    // AUTH
-    // ========================================
-    function setupAuth() {
-      if (!auth) return;
-      
-      auth.onAuthStateChanged(user => {
-        console.log('👤 Usuario:', user?.email || 'anónimo');
-        state.user = user;
-        render();
-        if (user) setupSync();
-      });
-    }
-
-    window.login = async () => {
-      if (!auth) {
-        alert('Firebase aún carga...');
-        return;
-      }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    };
-
-    window.logout = async () => {
-      await auth.signOut();
-      state = { user: null, active: 'calendar', calendar: [], production: [], reports: [], ads: [] };
-      render();
-    };
-
-    // ========================================
-    // SYNC
-    // ========================================
-    function setupSync() {
-      if (!db) return;
-      console.log('🔄 Escuchando cambios...');
-      
+    // FIRESTORE LISTENER
+    function escuchar() {
       ['calendar', 'production', 'reports', 'ads'].forEach(col => {
         db.collection(col).onSnapshot(snap => {
           state[col] = [];
@@ -156,24 +84,34 @@
       });
     }
 
-    // ========================================
     // ACCIONES
-    // ========================================
+    window.login = async () => {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    };
+
+    window.logout = async () => {
+      await auth.signOut();
+    };
+
     window.addRow = async () => {
-      if (!state.user || !db) return;
+      if (!state.user) return;
       try {
         await db.collection(state.active).add({ createdAt: new Date(), createdBy: state.user.email });
-      } catch (err) {
-        alert('Error: ' + err.message);
+      } catch (e) {
+        alert('Error: ' + e.message);
       }
     };
 
     window.updateCell = async (id, field, value) => {
-      if (!db) return;
       try {
         await db.collection(state.active).doc(id).update({ [field]: value });
-      } catch (err) {
-        console.error(err);
+      } catch (e) {
+        console.error(e);
       }
     };
 
@@ -182,9 +120,7 @@
       render();
     };
 
-    // ========================================
     // RENDER
-    // ========================================
     function render() {
       const app = document.getElementById('app');
       if (!app) return;
@@ -196,9 +132,7 @@
               <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;">C</div>
               <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f1f3d;">Content OS</h1>
               <p style="margin:0 0 32px;font-size:14px;color:#64748b;">Colaboración en tiempo real</p>
-              <button onclick="window.login()" style="width:100%;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.28);">
-                Inicia con Google
-              </button>
+              <button onclick="window.login()" style="width:100%;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;">Inicia con Google</button>
               <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Todos ven los mismos datos</p>
             </div>
           </div>
