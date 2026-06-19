@@ -7,16 +7,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
   <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; color: #1e293b; background: #f4f6f9; }
-    select { appearance: none; -webkit-appearance: none; }
+    select, input { appearance: none; -webkit-appearance: none; }
     option { background: #fff; color: #1e293b; font-weight: 500; }
+    input[type="text"], input[type="date"], input[type="number"], textarea { font-family: inherit; font-size: 13px; }
     ::-webkit-scrollbar { height: 11px; width: 11px; }
     ::-webkit-scrollbar-thumb { background: #cdd6e2; border-radius: 7px; border: 3px solid #f4f6f9; }
     ::-webkit-scrollbar-track { background: transparent; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .kpi { background: #fff; border: 1px solid #eef1f5; border-radius: 12px; padding: 18px; }
+    .kpi-val { font-size: 28px; font-weight: 700; color: #0f1f3d; }
+    .kpi-label { font-size: 12px; color: #7a8aa0; margin-top: 4px; font-weight: 500; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8fafb; padding: 11px 14px; text-align: left; font-size: 12px; font-weight: 700; color: #64748b; border-bottom: 1px solid #eef1f5; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f4f8; }
+    tr:hover { background: #f8fafb; }
+    .gantt-bar { height: 8px; border-radius: 4px; position: relative; }
+    .chart-container { position: relative; height: 320px; }
   </style>
 </head>
 <body>
@@ -38,26 +50,16 @@
       month: 'Junio',
       year: '2026',
       clientFilter: 'Todos',
-      f1: '',
-      f2: '',
-      demoOn: false,
-      calView: 'table',
-      ganttMode: 'month',
-      ganttAllExpanded: false,
-      ganttExpanded: {},
-      anGroupBy: { reports: 'cliente', ads: 'plataforma' },
-      anMetric: { reports: 'alcance', ads: 'gasto' },
-      anChart: { reports: 'bar', ads: 'bar' },
-      anFilters: { reports: {}, ads: {} },
       config: [],
-      inspo: [],
-      prompts: [],
       calendar: [],
       production: [],
       approvals: [],
-      assets: [],
       reports: [],
-      ads: []
+      ads: [],
+      reportMetric: 'alcance',
+      reportChart: 'bar',
+      adsMetric: 'gasto',
+      adsChart: 'bar'
     };
 
     const firebaseConfig = {
@@ -77,6 +79,7 @@
     const PLATFORMS = ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'YouTube', 'Shorts'];
     const FORMATS = ['Reel', 'Carrusel', 'Historia', 'Estática', 'Video', 'Short'];
     const CAL_STATES = ['Idea', 'Inspiración', 'Contenido', 'Producción', 'Aprobación', 'Correcciones', 'Aprobado', 'Programado', 'Publicado'];
+    const APPROVAL_STATES = ['Pendiente', 'Revisión', 'Cambios solicitados', 'Aprobado'];
     const PRIORITY = ['Alta', 'Media', 'Baja'];
     const COLORS = {
       'Idea': ['#eef2f7', '#475569'],
@@ -88,6 +91,9 @@
       'Aprobado': ['#dcfce7', '#15803d'],
       'Programado': ['#ccfbf1', '#0f766e'],
       'Publicado': ['#dbeafe', '#1d4ed8'],
+      'Pendiente': ['#f3f4f6', '#6b7280'],
+      'Revisión': ['#fef3c7', '#b45309'],
+      'Cambios solicitados': ['#fee2e2', '#b91c1c'],
       'Alta': ['#fee2e2', '#b91c1c'],
       'Media': ['#fef3c7', '#b45309'],
       'Baja': ['#dcfce7', '#15803d']
@@ -101,7 +107,6 @@
     let intentos = 0;
     function esperar() {
       intentos++;
-      console.log('Intento', intentos, ':', typeof firebase);
       if (typeof firebase !== 'undefined') {
         console.log('✅ Firebase disponible');
         iniciar();
@@ -121,9 +126,15 @@
         db = firebase.firestore();
         console.log('✅ Firebase OK');
         
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
           console.log('👤 Usuario:', user?.email || 'anónimo');
           state.user = user;
+          
+          // Cargar seed si es la primera vez
+          if (user && !localStorage.getItem('contentOSSeeded')) {
+            await seedDatabase();
+          }
+          
           render();
           if (user) escuchar();
         });
@@ -148,6 +159,72 @@
     }
 
     // ========================================
+    // CARGAR DATOS DE SEED (primera vez)
+    // ========================================
+    async function seedDatabase() {
+      if (localStorage.getItem('contentOSSeeded')) {
+        console.log('✓ Base de datos ya poblada');
+        return;
+      }
+
+      const seedData = {
+        config: [
+          { cliente: 'Restaurante El Buen Gusto', objetivo: 'Aumentar reservas en 30%', plataformas: 'Instagram, TikTok, Google Maps', presupuesto: 5000, contacto: 'manager@elbuengusto.com', estado: 'Activo' },
+          { cliente: 'Tienda de Ropa MODA+', objetivo: 'Mejorar tráfico web', plataformas: 'Instagram, Facebook, Pinterest', presupuesto: 8000, contacto: 'social@modamas.com', estado: 'Activo' },
+          { cliente: 'Academia de Yoga ZenFlow', objetivo: 'Captación de nuevos alumnos', plataformas: 'Instagram, YouTube', presupuesto: 3000, contacto: 'info@zenflow.yoga', estado: 'Activo' }
+        ],
+        calendar: [
+          { fecha: '2026-06-15', contenido: 'Reel de platillos especiales del mes', plataforma: 'Instagram', formato: 'Reel', estado: 'Publicado', responsable: 'María López' },
+          { fecha: '2026-06-18', contenido: 'Behind the scenes de la cocina', plataforma: 'TikTok', formato: 'Video', estado: 'Programado', responsable: 'Carlos Mendez' },
+          { fecha: '2026-06-20', contenido: 'Carrusel de promociones semanales', plataforma: 'Instagram', formato: 'Carrusel', estado: 'Aprobado', responsable: 'Ana García' },
+          { fecha: '2026-06-22', contenido: 'Historia promoción happy hour', plataforma: 'Instagram', formato: 'Historia', estado: 'Producción', responsable: 'María López' },
+          { fecha: '2026-06-25', contenido: 'Video receta exclusiva', plataforma: 'YouTube', formato: 'Video', estado: 'Contenido', responsable: 'Chef Juan' }
+        ],
+        production: [
+          { nombre: 'Banner Hero Restaurante', formato: 'Estática', dimensiones: '1080x1350', archivo: 'banner_hero_v2.psd', estado: 'Listo', notas: 'Aprobado por cliente' },
+          { nombre: 'Intro Video Reel', formato: 'Video', dimensiones: '1080x1920', archivo: 'intro_reel_final.mp4', estado: 'Listo', notas: 'Render final completado' },
+          { nombre: 'Carrusel Productos', formato: 'Carrusel', dimensiones: '1080x1350', archivo: 'carousel_5slides.ai', estado: 'En revisión', notas: 'Esperando feedback del cliente' },
+          { nombre: 'Thumbnail YouTube', formato: 'Estática', dimensiones: '1280x720', archivo: 'youtube_thumb_v1.psd', estado: 'Borrador', notas: 'En desarrollo, próxima revisión' }
+        ],
+        approvals: [
+          { contenido: 'Reel Promoción Especial', solicitante: 'María López', revisor: 'Gerente de Contenido', estado: 'Pendiente', comentarios: 'Esperando revisión del gerente' },
+          { contenido: 'Carrusel Nuevos Platillos', solicitante: 'Carlos Mendez', revisor: 'Chef Supervisor', estado: 'Cambios solicitados', comentarios: 'Mejorar iluminación en foto 3, cambiar descripción' },
+          { contenido: 'Story Happy Hour', solicitante: 'Ana García', revisor: 'Community Manager', estado: 'Aprobado', comentarios: 'Listo para publicar, perfecto' }
+        ],
+        reports: [
+          { cliente: 'Restaurante El Buen Gusto', periodo: 'Junio 2026', alcance: 45230, impressiones: 128450, engagement: 3240, clics: 1250, conversiones: 85 },
+          { cliente: 'Tienda MODA+', periodo: 'Junio 2026', alcance: 62150, impressiones: 215680, engagement: 5890, clics: 2340, conversiones: 156 },
+          { cliente: 'Academia ZenFlow', periodo: 'Junio 2026', alcance: 28900, impressiones: 89450, engagement: 2150, clics: 890, conversiones: 42 }
+        ],
+        ads: [
+          { nombre: 'Campaña Reservas Verano', plataforma: 'Instagram', gasto: 1500, impresiones: 125000, clics: 3450, cpc: 0.43, cpm: 12.00, estado: 'Activa' },
+          { nombre: 'Colección Primavera MODA+', plataforma: 'Facebook', gasto: 2800, impresiones: 245000, clics: 6780, cpc: 0.41, cpm: 11.43, estado: 'Activa' },
+          { nombre: 'Classes Intro Yoga', plataforma: 'TikTok', gasto: 800, impresiones: 92000, clics: 2100, cpc: 0.38, cpm: 8.70, estado: 'Activa' },
+          { nombre: 'Back to School MODA+', plataforma: 'Instagram', gasto: 1200, impresiones: 108000, clics: 2890, cpc: 0.41, cpm: 11.11, estado: 'Pausada' }
+        ]
+      };
+
+      console.log('🌱 Poblando base de datos...');
+      let total = 0;
+      try {
+        for (const [collection, items] of Object.entries(seedData)) {
+          for (const item of items) {
+            await db.collection(collection).add({
+              ...item,
+              createdAt: new Date(),
+              createdBy: 'seed'
+            });
+            total++;
+          }
+        }
+        localStorage.setItem('contentOSSeeded', 'true');
+        console.log(`✅ ${total} documentos agregados`);
+      } catch (e) {
+        console.error('Error seed:', e);
+      }
+    }
+
+    // ========================================
     // ACCIONES
     // ========================================
     window.login = async () => {
@@ -159,12 +236,6 @@
         console.log('🔐 Intentando login anónimo...');
         const result = await auth.signInAnonymously();
         console.log('✅ Login anónimo exitoso:', result.user.uid);
-        // Guardar en localStorage
-        localStorage.setItem('contentOSUser', JSON.stringify({
-          uid: result.user.uid,
-          email: 'usuario-' + result.user.uid.slice(0, 8),
-          anonymous: true
-        }));
         state.user = result.user;
         render();
         escuchar();
@@ -202,20 +273,41 @@
       }
     };
 
+    window.deleteRow = async (id) => {
+      if (!db || !confirm('¿Eliminar esta fila?')) return;
+      try {
+        await db.collection(state.active).doc(id).delete();
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    };
+
     window.switchTab = (tab) => {
       state.active = tab;
       render();
     };
 
+    window.updateMetric = (metric) => {
+      if (state.active === 'reports') state.reportMetric = metric;
+      else if (state.active === 'ads') state.adsMetric = metric;
+      render();
+    };
+
+    window.updateChart = (chart) => {
+      if (state.active === 'reports') state.reportChart = chart;
+      else if (state.active === 'ads') state.adsChart = chart;
+      render();
+    };
+
     // ========================================
-    // RENDER
+    // RENDER GENERAL
     // ========================================
     function render() {
-      const app = document.getElementById('app');
-      if (!app) return;
+      const appEl = document.getElementById('app');
+      if (!appEl) return;
 
       if (!state.user) {
-        app.innerHTML = `
+        appEl.innerHTML = `
           <div style="position:fixed;inset:0;background:linear-gradient(135deg,#0f1f3d,#0c1a33);display:flex;align-items:center;justify-content:center;">
             <div style="background:#fff;border-radius:16px;padding:48px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;">
               <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;">C</div>
@@ -229,22 +321,21 @@
         return;
       }
 
-      const rows = state[state.active] || [];
       const navItems = [
         { key: 'dashboard', label: 'Dashboard', d: 'M4 4h6v6H4zM14 4h6v6h-6zM14 14h6v6h-6zM4 14h6v6H4z' },
         { key: 'config', label: 'Estrategia del Mes', d: 'M12 3a9 9 0 100 18 9 9 0 000-18z' },
         { key: 'calendar', label: 'Calendario', d: 'M4 5h16v15H4zM4 9h16M8 3v4M16 3v4' },
         { key: 'production', label: 'Producción', d: 'M4 7h16v13H4zM16 10l4-2.5v9L16 14' },
-        { key: 'approvals', label: 'Aprobaciones', d: 'M12 3a9 9 0 100 18 9 9 0 000-18z' },
+        { key: 'approvals', label: 'Aprobaciones', d: 'M9 12l2 2 4-4' },
         { key: 'reports', label: 'Reportes', d: 'M4 20V11M9.5 20V5M15 20v-6M20.5 20V8M3 20h18' },
         { key: 'ads', label: 'Ads / Pauta', d: 'M3 10v4h3l5 4V6L6 10H3zM15 9a3 3 0 010 6M18 6a7 7 0 010 12' }
       ];
 
-      const clientOptions = ['Todos', ...new Set((state.config || []).map(r => r.cliente).filter(Boolean))];
+      const content = renderContent();
 
-      app.innerHTML = `
+      appEl.innerHTML = `
         <div style="display:flex;height:100vh;width:100%;overflow:hidden;">
-          <aside style="width:236px;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
+          <aside style="width:236px;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;border-right:1px solid rgba(255,255,255,.05);">
             <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.1);">
               <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;">C</div>
               <div style="line-height:1.1;">
@@ -255,7 +346,7 @@
 
             <nav style="flex:1;margin-top:14px;display:flex;flex-direction:column;gap:3px;">
               ${navItems.map(n => `
-                <button onclick="window.switchTab('${n.key}')" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;border:none;background:${state.active === n.key ? 'rgba(255,255,255,.08)' : 'transparent'};color:${state.active === n.key ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+                <button onclick="window.switchTab('${n.key}')" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;border:none;background:${state.active === n.key ? 'rgba(255,255,255,.08)' : 'transparent'};color:${state.active === n.key ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="${n.d}"></path></svg>
                   <span>${n.label}</span>
                   <span style="margin-left:auto;background:${state.active === n.key ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)'};border-radius:6px;padding:3px 7px;font-size:10px;">${(state[n.key] || []).length}</span>
@@ -282,46 +373,519 @@
                   ${YEARS.map(y => `<option>${y}</option>`).join('')}
                 </select>
 
-                <select value="${state.clientFilter}" onchange="state.clientFilter = this.value; render();" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;">
-                  ${clientOptions.map(c => `<option>${c}</option>`).join('')}
-                </select>
-
-                ${state.active !== 'dashboard' ? `<button onclick="window.addRow()" style="background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Nueva fila</button>` : ''}
+                ${state.active !== 'dashboard' ? `<button onclick="window.addRow()" style="background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Nuevo</button>` : ''}
               </div>
             </header>
 
             <div style="flex:1;overflow:auto;padding:24px 26px;">
-              <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;">
-                <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} ${rows.length === 1 ? 'fila' : 'filas'}</div>
-                
-                ${rows.length === 0 ? `
-                  <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
-                    No hay filas todavía. Usa "+ Nueva fila" para comenzar.
-                  </div>
-                ` : `
-                  <div style="overflow:auto;">
-                    <table style="width:100%;border-collapse:collapse;">
-                      <tbody>
-                        ${rows.map((row, i) => `
-                          <tr style="border-bottom:1px solid #f1f4f8;${i % 2 === 0 ? 'background:#fafbfd;' : ''}">
-                            <td style="padding:12px 18px;flex:1;width:130px;"><input type="date" value="${row.fecha || ''}" onchange="window.updateCell('${row._id}', 'fecha', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
-                            <td style="padding:12px 18px;flex:1;width:120px;"><input type="text" value="${row.plataforma || ''}" onchange="window.updateCell('${row._id}', 'plataforma', this.value)" placeholder="Plataforma" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
-                            <td style="padding:12px 18px;flex:1;width:260px;"><input type="text" value="${row.contenido || row.nombre || row.cliente || ''}" onchange="window.updateCell('${row._id}', '${row.contenido !== undefined ? 'contenido' : (row.nombre !== undefined ? 'nombre' : 'cliente')}', this.value)" placeholder="Contenido" style="border:none;background:transparent;font:inherit;font-size:13px;width:100%;outline:none;" /></td>
-                            <td style="padding:12px 18px;flex:1;width:140px;"><select onchange="window.updateCell('${row._id}', 'estado', this.value)" style="border:none;background:transparent;font:inherit;font-size:13px;outline:none;cursor:pointer;"><option value="">—</option>${(state.active === 'calendar' ? CAL_STATES : PRIORITY).map(s => `<option value="${s}" ${row.estado === s ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
-                          </tr>
-                        `).join('')}
-                      </tbody>
-                    </table>
-                  </div>
-                `}
-              </div>
+              ${content}
             </div>
           </main>
         </div>
       `;
     }
 
+    // ========================================
+    // RENDER POR PESTAÑA
+    // ========================================
+    function renderContent() {
+      switch (state.active) {
+        case 'dashboard': return renderDashboard();
+        case 'config': return renderConfig();
+        case 'calendar': return renderCalendar();
+        case 'production': return renderProduction();
+        case 'approvals': return renderApprovals();
+        case 'reports': return renderReports();
+        case 'ads': return renderAds();
+        default: return '<div>Cargando...</div>';
+      }
+    }
+
+    // ========================================
+    // DASHBOARD
+    // ========================================
+    function renderDashboard() {
+      const totalConfig = state.config.length;
+      const totalCal = state.calendar.length;
+      const publishedCal = (state.calendar || []).filter(r => r.estado === 'Publicado').length;
+      const totalApprovals = state.approvals.length;
+      const pendingApprovals = (state.approvals || []).filter(r => r.estado === 'Pendiente').length;
+      const totalAds = state.ads.length;
+      const totalSpend = (state.ads || []).reduce((sum, r) => sum + (parseFloat(r.gasto) || 0), 0);
+
+      return `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:24px;animation:fadeUp .3s ease;">
+          <div class="kpi">
+            <div class="kpi-val">${totalConfig}</div>
+            <div class="kpi-label">Clientes en Estrategia</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">${totalCal}</div>
+            <div class="kpi-label">Contenidos Programados</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">${publishedCal}</div>
+            <div class="kpi-label">Publicados este mes</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">${pendingApprovals}</div>
+            <div class="kpi-label">Pendientes de Aprobación</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">${totalAds}</div>
+            <div class="kpi-label">Campañas Activas</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val">$${totalSpend.toLocaleString()}</div>
+            <div class="kpi-label">Gasto Total en Ads</div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;animation:fadeUp .35s ease;">
+          <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:#0f1f3d;">Actividad Reciente</h3>
+          <div style="font-size:13px;color:#64748b;line-height:1.6;">
+            ${state.calendar.slice(0, 5).map(item => `
+              <div style="padding:8px 0;border-bottom:1px solid #f1f4f8;">
+                ${item.contenido || 'Sin título'} · 
+                <span class="badge" style="background:${COLORS[item.estado]?.[0] || '#f3f4f6'};color:${COLORS[item.estado]?.[1] || '#6b7280'};">${item.estado || 'Sin estado'}</span>
+              </div>
+            `).join('')}
+            ${state.calendar.length === 0 ? '<div style="color:#94a3b8;">Sin actividad todavía</div>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ========================================
+    // ESTRATEGIA DEL MES
+    // ========================================
+    function renderConfig() {
+      const rows = state.config || [];
+      return `
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+          <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Clientes</div>
+          ${rows.length === 0 ? `
+            <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+              No hay clientes. Usa "+ Nuevo" para agregar.
+            </div>
+          ` : `
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Objetivo</th>
+                    <th>Plataformas</th>
+                    <th>Presupuesto</th>
+                    <th>Contacto</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map((r, i) => `
+                    <tr>
+                      <td><input type="text" value="${r.cliente || ''}" onchange="window.updateCell('${r._id}', 'cliente', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.objetivo || ''}" onchange="window.updateCell('${r._id}', 'objetivo', this.value)" placeholder="Ej: Aumentar seguidores" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.plataformas || ''}" onchange="window.updateCell('${r._id}', 'plataformas', this.value)" placeholder="Instagram, TikTok..." style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="number" value="${r.presupuesto || ''}" onchange="window.updateCell('${r._id}', 'presupuesto', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.contacto || ''}" onchange="window.updateCell('${r._id}', 'contacto', this.value)" placeholder="Email" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">Eliminar</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // ========================================
+    // CALENDARIO
+    // ========================================
+    function renderCalendar() {
+      const rows = state.calendar || [];
+      return `
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+          <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Contenidos Programados</div>
+          ${rows.length === 0 ? `
+            <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+              Sin contenido. Usa "+ Nuevo" para crear.
+            </div>
+          ` : `
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Contenido</th>
+                    <th>Plataforma</th>
+                    <th>Formato</th>
+                    <th>Estado</th>
+                    <th>Responsable</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map(r => `
+                    <tr>
+                      <td><input type="date" value="${r.fecha || ''}" onchange="window.updateCell('${r._id}', 'fecha', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.contenido || ''}" onchange="window.updateCell('${r._id}', 'contenido', this.value)" placeholder="Descripción" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'plataforma', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                          <option value="">${r.plataforma || 'Seleccionar'}</option>
+                          ${PLATFORMS.map(p => `<option value="${p}" ${r.plataforma === p ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'formato', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                          <option value="">${r.formato || 'Seleccionar'}</option>
+                          ${FORMATS.map(f => `<option value="${f}" ${r.formato === f ? 'selected' : ''}>${f}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'estado', this.value)" style="border:none;background:transparent;padding:6px;border-radius:6px;font-weight:600;">
+                          ${CAL_STATES.map(s => `<option value="${s}" ${r.estado === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td><input type="text" value="${r.responsable || ''}" onchange="window.updateCell('${r._id}', 'responsable', this.value)" placeholder="Nombre" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✕</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // ========================================
+    // PRODUCCIÓN
+    // ========================================
+    function renderProduction() {
+      const rows = state.production || [];
+      return `
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+          <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Assets</div>
+          ${rows.length === 0 ? `
+            <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+              Sin assets. Usa "+ Nuevo" para crear.
+            </div>
+          ` : `
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Asset</th>
+                    <th>Formato</th>
+                    <th>Dimensiones</th>
+                    <th>Archivo</th>
+                    <th>Estado</th>
+                    <th>Notas</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map(r => `
+                    <tr>
+                      <td><input type="text" value="${r.nombre || ''}" onchange="window.updateCell('${r._id}', 'nombre', this.value)" placeholder="Nombre del asset" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'formato', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                          <option>${r.formato || 'Seleccionar'}</option>
+                          ${FORMATS.map(f => `<option value="${f}">${f}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td><input type="text" value="${r.dimensiones || ''}" onchange="window.updateCell('${r._id}', 'dimensiones', this.value)" placeholder="1080x1080" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.archivo || ''}" onchange="window.updateCell('${r._id}', 'archivo', this.value)" placeholder="URL o nombre" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'estado', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                          <option>${r.estado || 'Seleccionar'}</option>
+                          <option value="Borrador">Borrador</option>
+                          <option value="En revisión">En revisión</option>
+                          <option value="Listo">Listo</option>
+                        </select>
+                      </td>
+                      <td><input type="text" value="${r.notas || ''}" onchange="window.updateCell('${r._id}', 'notas', this.value)" placeholder="Notas" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✕</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // ========================================
+    // APROBACIONES
+    // ========================================
+    function renderApprovals() {
+      const rows = state.approvals || [];
+      return `
+        <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+          <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Solicitudes de Aprobación</div>
+          ${rows.length === 0 ? `
+            <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+              Sin solicitudes. Usa "+ Nuevo" para crear.
+            </div>
+          ` : `
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Contenido</th>
+                    <th>Solicitante</th>
+                    <th>Revisor</th>
+                    <th>Estado</th>
+                    <th>Comentarios</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map(r => `
+                    <tr>
+                      <td><input type="text" value="${r.contenido || ''}" onchange="window.updateCell('${r._id}', 'contenido', this.value)" placeholder="Descripción" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.solicitante || ''}" onchange="window.updateCell('${r._id}', 'solicitante', this.value)" placeholder="Nombre" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td><input type="text" value="${r.revisor || ''}" onchange="window.updateCell('${r._id}', 'revisor', this.value)" placeholder="Revisor" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                      <td>
+                        <select onchange="window.updateCell('${r._id}', 'estado', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                          ${APPROVAL_STATES.map(s => `<option value="${s}" ${r.estado === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td><textarea onchange="window.updateCell('${r._id}', 'comentarios', this.value)" placeholder="Agregar comentarios" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;height:40px;resize:none;"></textarea></td>
+                      <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✕</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // ========================================
+    // REPORTES
+    // ========================================
+    function renderReports() {
+      const rows = state.reports || [];
+      const metrics = ['alcance', 'impressiones', 'engagement', 'clics', 'conversiones'];
+      
+      return `
+        <div style="animation:fadeUp .35s ease;">
+          <div style="display:flex;gap:12px;margin-bottom:18px;">
+            ${metrics.map(m => `
+              <button onclick="window.updateMetric('${m}')" style="padding:9px 15px;border-radius:9px;border:${state.reportMetric === m ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.reportMetric === m ? '#2563eb' : '#fff'};color:${state.reportMetric === m ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">${m.charAt(0).toUpperCase() + m.slice(1)}</button>
+            `).join('')}
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:18px;">
+            <button onclick="window.updateChart('bar')" style="padding:9px 15px;border-radius:9px;border:${state.reportChart === 'bar' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.reportChart === 'bar' ? '#2563eb' : '#fff'};color:${state.reportChart === 'bar' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Barras</button>
+            <button onclick="window.updateChart('line')" style="padding:9px 15px;border-radius:9px;border:${state.reportChart === 'line' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.reportChart === 'line' ? '#2563eb' : '#fff'};color:${state.reportChart === 'line' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Línea</button>
+            <button onclick="window.updateChart('pie')" style="padding:9px 15px;border-radius:9px;border:${state.reportChart === 'pie' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.reportChart === 'pie' ? '#2563eb' : '#fff'};color:${state.reportChart === 'pie' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Pastel</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;margin-bottom:18px;">
+            <div id="reportChart" class="chart-container"></div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Reportes</div>
+            ${rows.length === 0 ? `
+              <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+                Sin reportes. Usa "+ Nuevo" para crear.
+              </div>
+            ` : `
+              <div style="overflow:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Período</th>
+                      <th>Alcance</th>
+                      <th>Engagement</th>
+                      <th>Clics</th>
+                      <th>Conversiones</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.map(r => `
+                      <tr>
+                        <td><input type="text" value="${r.cliente || ''}" onchange="window.updateCell('${r._id}', 'cliente', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="text" value="${r.periodo || ''}" onchange="window.updateCell('${r._id}', 'periodo', this.value)" placeholder="Ej: Junio 2026" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.alcance || ''}" onchange="window.updateCell('${r._id}', 'alcance', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.engagement || ''}" onchange="window.updateCell('${r._id}', 'engagement', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.clics || ''}" onchange="window.updateCell('${r._id}', 'clics', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.conversiones || ''}" onchange="window.updateCell('${r._id}', 'conversiones', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;">✕</button></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // ========================================
+    // ADS / PAUTA
+    // ========================================
+    function renderAds() {
+      const rows = state.ads || [];
+      const metrics = ['gasto', 'impresiones', 'clics', 'costo_por_clic', 'costo_por_mil'];
+      
+      return `
+        <div style="animation:fadeUp .35s ease;">
+          <div style="display:flex;gap:12px;margin-bottom:18px;">
+            ${metrics.map(m => `
+              <button onclick="window.updateMetric('${m}')" style="padding:9px 15px;border-radius:9px;border:${state.adsMetric === m ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.adsMetric === m ? '#2563eb' : '#fff'};color:${state.adsMetric === m ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;">${m.replace(/_/g, ' ')}</button>
+            `).join('')}
+          </div>
+
+          <div style="display:flex;gap:12px;margin-bottom:18px;">
+            <button onclick="window.updateChart('bar')" style="padding:9px 15px;border-radius:9px;border:${state.adsChart === 'bar' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.adsChart === 'bar' ? '#2563eb' : '#fff'};color:${state.adsChart === 'bar' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Barras</button>
+            <button onclick="window.updateChart('line')" style="padding:9px 15px;border-radius:9px;border:${state.adsChart === 'line' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.adsChart === 'line' ? '#2563eb' : '#fff'};color:${state.adsChart === 'line' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Línea</button>
+            <button onclick="window.updateChart('pie')" style="padding:9px 15px;border-radius:9px;border:${state.adsChart === 'pie' ? '2px solid #2563eb' : '1px solid #e8edf3'};background:${state.adsChart === 'pie' ? '#2563eb' : '#fff'};color:${state.adsChart === 'pie' ? '#fff' : '#0f1f3d'};font:inherit;font-size:13px;cursor:pointer;">Pastel</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;padding:20px;margin-bottom:18px;">
+            <div id="adsChart" class="chart-container"></div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;animation:fadeUp .35s ease;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:700;color:#0f1f3d;">${rows.length} Campañas</div>
+            ${rows.length === 0 ? `
+              <div style="padding:48px 20px;text-align:center;color:#94a3b8;font-size:13.5px;">
+                Sin campañas. Usa "+ Nuevo" para crear.
+              </div>
+            ` : `
+              <div style="overflow:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Campaña</th>
+                      <th>Plataforma</th>
+                      <th>Gasto</th>
+                      <th>Impresiones</th>
+                      <th>Clics</th>
+                      <th>CPC</th>
+                      <th>Estado</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.map(r => `
+                      <tr>
+                        <td><input type="text" value="${r.nombre || ''}" onchange="window.updateCell('${r._id}', 'nombre', this.value)" placeholder="Nombre campaña" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td>
+                          <select onchange="window.updateCell('${r._id}', 'plataforma', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                            <option>${r.plataforma || 'Seleccionar'}</option>
+                            ${PLATFORMS.map(p => `<option value="${p}">${p}</option>`).join('')}
+                          </select>
+                        </td>
+                        <td><input type="number" value="${r.gasto || ''}" onchange="window.updateCell('${r._id}', 'gasto', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.impresiones || ''}" onchange="window.updateCell('${r._id}', 'impresiones', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.clics || ''}" onchange="window.updateCell('${r._id}', 'clics', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td><input type="number" value="${r.cpc || ''}" onchange="window.updateCell('${r._id}', 'cpc', this.value)" placeholder="0" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;width:100%;background:#f8fafb;" /></td>
+                        <td>
+                          <select onchange="window.updateCell('${r._id}', 'estado', this.value)" style="border:1px solid #e8edf3;padding:8px;border-radius:6px;background:#f8fafb;">
+                            <option value="Activa" ${r.estado === 'Activa' ? 'selected' : ''}>Activa</option>
+                            <option value="Pausada" ${r.estado === 'Pausada' ? 'selected' : ''}>Pausada</option>
+                            <option value="Finalizada" ${r.estado === 'Finalizada' ? 'selected' : ''}>Finalizada</option>
+                          </select>
+                        </td>
+                        <td><button onclick="window.deleteRow('${r._id}')" style="background:#fee2e2;color:#b91c1c;border:none;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;">✕</button></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
     render();
+
+    // ========================================
+    // GRÁFICOS (después de render)
+    // ========================================
+    let chartInstances = { report: null, ads: null };
+
+    function renderCharts() {
+      setTimeout(() => {
+        // REPORTES
+        if (state.active === 'reports' && document.getElementById('reportChart')) {
+          const data = state.reports || [];
+          const ctx = document.getElementById('reportChart')?.getContext('2d');
+          if (ctx && data.length > 0) {
+            if (chartInstances.report) chartInstances.report.destroy();
+            
+            const colors = ['#3b82f6', '#2563eb', '#1d4ed8'];
+            chartInstances.report = new Chart(ctx, {
+              type: state.reportChart,
+              data: {
+                labels: data.map(d => d.cliente),
+                datasets: [{
+                  label: state.reportMetric.charAt(0).toUpperCase() + state.reportMetric.slice(1),
+                  data: data.map(d => d[state.reportMetric] || 0),
+                  backgroundColor: colors,
+                  borderColor: '#fff',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true, position: 'top' } }
+              }
+            });
+          }
+        }
+
+        // ADS
+        if (state.active === 'ads' && document.getElementById('adsChart')) {
+          const data = state.ads || [];
+          const ctx = document.getElementById('adsChart')?.getContext('2d');
+          if (ctx && data.length > 0) {
+            if (chartInstances.ads) chartInstances.ads.destroy();
+            
+            const colors = ['#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'];
+            chartInstances.ads = new Chart(ctx, {
+              type: state.adsChart,
+              data: {
+                labels: data.map(d => d.nombre),
+                datasets: [{
+                  label: state.adsMetric.replace(/_/g, ' ').toUpperCase(),
+                  data: data.map(d => d[state.adsMetric] || 0),
+                  backgroundColor: colors,
+                  borderColor: '#fff',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true, position: 'top' } }
+              }
+            });
+          }
+        }
+      }, 150);
+    }
+
+    // Re-renderizar gráficos cuando cambia la pestaña
+    const originalRender = render;
+    render = function() {
+      originalRender.call(this);
+      renderCharts();
+    };
   </script>
 </body>
 </html>
