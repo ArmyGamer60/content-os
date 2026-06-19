@@ -156,28 +156,23 @@
         return;
       }
       try {
-        console.log('🔐 Intentando login con redirect...');
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithRedirect(provider);
+        console.log('🔐 Intentando login anónimo...');
+        const result = await auth.signInAnonymously();
+        console.log('✅ Login anónimo exitoso:', result.user.uid);
+        // Guardar en localStorage
+        localStorage.setItem('contentOSUser', JSON.stringify({
+          uid: result.user.uid,
+          email: 'usuario-' + result.user.uid.slice(0, 8),
+          anonymous: true
+        }));
+        state.user = result.user;
+        render();
+        escuchar();
       } catch (e) {
         console.error('❌ Error login:', e);
         alert('Error: ' + e.message);
       }
     };
-
-    // Verificar resultado de redirect
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      firebase.auth().getRedirectResult().then(result => {
-        if (result?.user) {
-          console.log('✅ Login exitoso via redirect:', result.user.email);
-          state.user = result.user;
-          render();
-          escuchar();
-        }
-      }).catch(err => {
-        console.error('Error en redirect:', err);
-      });
-    }
 
     window.logout = async () => {
       await auth.signOut();
