@@ -67,7 +67,7 @@
   storageBucket: "content-os-97b63.firebasestorage.app",
   messagingSenderId: "707594487675",
   appId: "1:707594487675:web:fd98225e864bea56025fde"
-};
+    };
 
     // ========================================
     // CONSTANTES
@@ -151,13 +151,32 @@
     // ACCIONES
     // ========================================
     window.login = async () => {
+      if (!auth) {
+        alert('Firebase aún carga. Espera un momento.');
+        return;
+      }
       try {
+        console.log('🔐 Intentando login...');
         const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
+        // Intenta popup primero, luego redirect
+        try {
+          await auth.signInWithPopup(provider);
+        } catch (popupErr) {
+          console.warn('Popup bloqueado, usando redirect...');
+          await auth.signInWithRedirect(provider);
+        }
       } catch (e) {
+        console.error('❌ Error login:', e);
         alert('Error: ' + e.message);
       }
     };
+
+    // Verificar si volvemos de un redirect
+    auth?.getRedirectResult?.().then(result => {
+      if (result?.user) {
+        console.log('✅ Regresamos de redirect, usuario:', result.user.email);
+      }
+    });
 
     window.logout = async () => {
       await auth.signOut();
