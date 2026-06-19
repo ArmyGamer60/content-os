@@ -7,6 +7,21 @@
 </head>
 <body>
 <x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+</helmet>
+
 <div style="display:flex;height:100vh;width:100%;font-family:'Plus Jakarta Sans',sans-serif;color:#1e293b;background:#f4f6f9;overflow:hidden;">
   <!-- LOGIN SCREEN -->
   <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ true }}">
@@ -14,12 +29,12 @@
       <div style="background:#fff;border-radius:16px;padding:48px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;">
         <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.4);">C</div>
         <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f1f3d;">Content OS</h1>
-        <p style="margin:0 0 32px;font-size:14px;color:#64748b;">Colaboración en tiempo real para marketing</p>
+        <p style="margin:0 0 32px;font-size:14px;color:#64748b;">Colaboración en tiempo real</p>
         <button onClick="{{ onGoogleLogin }}" style="width:100%;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:12px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(37,99,235,.28);" style-hover="background:#1d4ed8;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.41 3.85 8 8.82 8 .34 0 .68-.02 1.01-.07-1.07-1.35-1.71-3.06-1.71-4.93 0-4.42 3.58-8 8-8 .67 0 1.32.1 1.95.28-1.45-2.8-4.42-4.68-7.86-4.68zm8 8h3v2h-3v3h-2v-3h-3v-2h3V7h2v3z"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 6v6m0 0v6" stroke="white" stroke-width="2"/></svg>
           Inicia con Google
         </button>
-        <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Tu cuenta Gmail será tu login único</p>
+        <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Todos ven los mismos datos en vivo</p>
       </div>
     </div>
   </sc-if>
@@ -28,15 +43,15 @@
   <sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
     <aside style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
       <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.1);">
-        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;box-shadow:0 4px 12px rgba(37,99,235,.4);">C</div>
+        <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;">C</div>
         <div style="line-height:1.1;flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;letter-spacing:-.01em;">Content OS</div>
-          <div style="font-size:10px;color:#7e92b3;font-weight:500;letter-spacing:.04em;text-transform:uppercase;">{{ userEmail }}</div>
+          <div style="font-weight:700;font-size:15px;">Content OS</div>
+          <div style="font-size:10px;color:#7e92b3;font-weight:500;">{{ userEmail }}</div>
         </div>
       </div>
 
       <nav style="display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto;margin-top:14px;">
-        <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="9">
+        <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="4">
           <button onClick="{{ item.onClick }}" style="{{ item.btnStyle }}" style-hover="{{ item.hoverStyle }}">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="{{ item.d }}"></path></svg>
             <span style="flex:1;text-align:left;white-space:nowrap;">{{ item.label }}</span>
@@ -45,7 +60,7 @@
         </sc-for>
       </nav>
 
-      <button onClick="{{ onLogout }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 11px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#cad5e8;font:inherit;font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);">
+      <button onClick="{{ onLogout }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 11px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#cad5e8;font:inherit;font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:rgba(255,255,255,.12);">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"></path></svg>
         Cerrar sesión
       </button>
@@ -67,14 +82,10 @@
           </sc-if>
           <sc-if value="{{ syncing }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#b45309;font-weight:600;background:#fef3c7;padding:6px 10px;border-radius:6px;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v7M12 15v7"></path></svg>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v7M12 15v7"></path></svg>
               Sincronizando...
             </div>
           </sc-if>
-
-          <select value="{{ month }}" onChange="{{ onMonth }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;border-radius:9px;outline:none;cursor:pointer;">
-            <sc-for list="{{ monthOptions }}" as="m" hint-placeholder-count="12"><option value="{{ m }}">{{ m }}</option></sc-for>
-          </select>
 
           <button onClick="{{ onAddRow }}" style="display:flex;align-items:center;gap:6px;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.28);" style-hover="background:#1d4ed8;">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
@@ -93,14 +104,14 @@
           <div style="overflow:auto;max-height:calc(100vh - 250px);">
             <div style="min-width:{{ tableData.minWidth }}px;">
               <div style="display:flex;position:sticky;top:0;z-index:4;background:#f8fafc;border-bottom:1.5px solid #e8edf3;">
-                <sc-for list="{{ tableData.columns }}" as="col" hint-placeholder-count="8">
+                <sc-for list="{{ tableData.columns }}" as="col" hint-placeholder-count="6">
                   <div style="{{ col.boxStyle }}">{{ col.label }}</div>
                 </sc-for>
               </div>
 
               <sc-for list="{{ tableData.rows }}" as="row" hint-placeholder-count="4">
                 <div style="display:flex;border-bottom:1px solid #f1f4f8;" style-hover="background:#fafbfd;">
-                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="8">
+                  <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="6">
                     <div style="{{ cell.boxStyle }}">
                       <sc-if value="{{ cell.isInput }}" hint-placeholder-val="{{ false }}">
                         <input type="{{ cell.type }}" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}" />
@@ -147,189 +158,169 @@ class Component extends DCLogic {
     user: null,
     showAuth: true,
     showApp: false,
-    month: 'Junio',
     active: 'calendar',
     syncing: false,
     syncStatus: false,
-    data: {}
+    calendar: [],
+    production: [],
+    reports: [],
+    ads: []
   };
 
   componentDidMount() {
     this.initFirebase();
   }
 
-  initFirebase = async () => {
+  initFirebase = () => {
     try {
-      // Cargar Firebase desde CDN
-      if (!window.firebase) {
-        const script = document.createElement('script');
-        script.src = 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        script.onload = () => this.loadFirebaseModules();
-        document.head.appendChild(script);
+      if (window.firebase) {
+        this.setupFirebase();
       } else {
-        this.loadFirebaseModules();
+        console.error('Firebase no cargó correctamente');
       }
     } catch (err) {
       console.error('Error inicializando Firebase:', err);
     }
   };
 
-  loadFirebaseModules = async () => {
-    try {
-      // Cargar Auth y Firestore
-      const authScript = document.createElement('script');
-      authScript.src = 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-      document.head.appendChild(authScript);
-
-      const dbScript = document.createElement('script');
-      dbScript.src = 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-      document.head.appendChild(dbScript);
-
-      // Esperar a que se carguen los scripts
-      await new Promise(resolve => {
-        setTimeout(() => {
-          this.setupFirebase();
-          resolve();
-        }, 2000);
-      });
-    } catch (err) {
-      console.error('Error cargando módulos Firebase:', err);
-    }
-  };
-
   setupFirebase = () => {
-    // IMPORTANTE: Reemplaza con tus credenciales reales
+    // REEMPLAZA ESTO CON TU firebaseConfig REAL
     const firebaseConfig = {
-      apiKey: "AIzaSyDIxS7wFxxxxxxxxxxxxxxxxxxxxxxx",
-      authDomain: "content-os-xxxxx.firebaseapp.com",
-      projectId: "content-os-xxxxx",
-      storageBucket: "content-os-xxxxx.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdef1234567890"
+      apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
+      authDomain: "content-os-97b63.firebaseapp.com",
+      projectId: "content-os-97b63",
+      storageBucket: "content-os-97b63.firebasestorage.app",
+      messagingSenderId: "707594487675",
+      appId: "1:707594487675:web:fd98225e864bea56025fde"
     };
 
-    window.firebase.initializeApp(firebaseConfig);
-    this.auth = window.firebase.auth();
-    this.db = window.firebase.firestore();
-
-    // Escuchar cambios de autenticación
-    this.auth.onAuthStateChanged(user => {
-      if (user) {
-        this.setState({ user, showAuth: false, showApp: true });
-        this.setupRealtimeSync();
-      } else {
-        this.setState({ user: null, showAuth: true, showApp: false });
+    try {
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
       }
-    });
-  };
+      this.auth = window.firebase.auth();
+      this.db = window.firebase.firestore();
 
-  onGoogleLogin = async () => {
-    try {
-      const provider = new window.firebase.auth.GoogleAuthProvider();
-      const result = await this.auth.signInWithPopup(provider);
-      // El onAuthStateChanged se encargará de actualizar el estado
+      this.auth.onAuthStateChanged(user => {
+        if (user) {
+          this.setState({ user, showAuth: false, showApp: true });
+          this.setupRealtimeSync();
+        } else {
+          this.setState({ user: null, showAuth: true, showApp: false });
+        }
+      });
     } catch (err) {
-      console.error('Error en login:', err);
-      alert('Error al iniciar sesión');
-    }
-  };
-
-  onLogout = async () => {
-    try {
-      await this.auth.signOut();
-      this.setState({ data: {}, active: 'calendar' });
-    } catch (err) {
-      console.error('Error al cerrar sesión:', err);
+      console.error('Error en setupFirebase:', err);
     }
   };
 
   setupRealtimeSync = () => {
-    // Sincronizar colección 'calendar' en tiempo real
-    this.db.collection('users')
-      .doc(this.state.user.uid)
-      .collection('calendar')
+    const active = this.state.active;
+    
+    // Escuchar cambios en la colección COMPARTIDA (no por usuario)
+    this.db.collection(active)
       .onSnapshot(snapshot => {
         this.setState({ syncing: false, syncStatus: true });
         const rows = [];
         snapshot.forEach(doc => {
           rows.push({ _id: doc.id, ...doc.data() });
         });
-        this.setState(s => ({ data: { ...s.data, calendar: rows } }));
+        this.setState({ [active]: rows });
+      }, err => {
+        console.error('Error en sync:', err);
+        this.setState({ syncing: false });
       });
   };
 
-  onMonth = (e) => {
-    this.setState({ month: e.target.value });
+  onGoogleLogin = async () => {
+    try {
+      const provider = new window.firebase.auth.GoogleAuthProvider();
+      await this.auth.signInWithPopup(provider);
+    } catch (err) {
+      console.error('Error en login:', err);
+      alert('Error: ' + err.message);
+    }
+  };
+
+  onLogout = async () => {
+    try {
+      await this.auth.signOut();
+      this.setState({ 
+        user: null, 
+        calendar: [], 
+        production: [], 
+        reports: [], 
+        ads: [],
+        active: 'calendar'
+      });
+    } catch (err) {
+      console.error('Error logout:', err);
+    }
   };
 
   onAddRow = () => {
     const { active, user } = this.state;
     if (!user || !this.db) return;
 
-    const newRow = {
-      _id: Math.random().toString(36).slice(2, 9),
+    this.setState({ syncing: true });
+
+    const newDoc = {
       createdAt: new Date(),
       createdBy: user.email
     };
 
-    this.setState({ syncing: true });
-
-    this.db.collection('users')
-      .doc(user.uid)
-      .collection(active)
-      .doc(newRow._id)
-      .set(newRow)
+    this.db.collection(active).add(newDoc)
       .then(() => {
         this.setState({ syncing: false });
       })
       .catch(err => {
-        console.error('Error agregando fila:', err);
+        console.error('Error:', err);
         this.setState({ syncing: false });
+        alert('Error: ' + err.message);
       });
   };
 
-  updateCell = (rowId, field, value) => {
-    const { active, user } = this.state;
-    if (!user || !this.db) return;
+  updateCell = (docId, field, value) => {
+    const { active } = this.state;
+    if (!this.db) return;
 
     this.setState({ syncing: true });
 
-    this.db.collection('users')
-      .doc(user.uid)
-      .collection(active)
-      .doc(rowId)
-      .update({ [field]: value })
+    this.db.collection(active).doc(docId).update({ [field]: value })
       .then(() => {
         this.setState({ syncing: false });
       })
       .catch(err => {
-        console.error('Error actualizando:', err);
+        console.error('Error:', err);
         this.setState({ syncing: false });
       });
   };
 
   renderVals() {
-    const { user, month, active, data, syncing, syncStatus } = this.state;
+    const { user, active, syncing, syncStatus } = this.state;
     const userEmail = user?.email || '';
-    const rows = data[active] || [];
+    const rows = this.state[active] || [];
 
     const navItems = [
-      { label: 'Calendar', id: 'calendar', hasCount: true, count: rows.length },
-      { label: 'Reportes', id: 'reports', hasCount: true, count: 0 },
-      { label: 'Ads', id: 'ads', hasCount: true, count: 0 }
+      { label: 'Calendar', id: 'calendar', count: this.state.calendar.length, d: 'M8 7V3m8 4V3m-9 8h18V5H7v4zm0 0v8a2 2 0 002 2h12a2 2 0 002-2v-8' },
+      { label: 'Production', id: 'production', count: this.state.production.length, d: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { label: 'Reports', id: 'reports', count: this.state.reports.length, d: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { label: 'Ads', id: 'ads', count: this.state.ads.length, d: 'M13 10V3L4 14h7v7l9-11h-7z' }
     ].map(item => ({
       ...item,
-      onClick: () => this.setState({ active: item.id }),
+      onClick: () => {
+        this.setState({ active: item.id });
+        setTimeout(() => this.setupRealtimeSync(), 100);
+      },
       btnStyle: `display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:9px;border:none;background:${active === item.id ? 'rgba(255,255,255,.08)' : 'transparent'};color:${active === item.id ? '#fff' : '#8fa5bf'};font:inherit;font-size:13px;font-weight:600;cursor:pointer;justify-content:space-between;transition:all .2s;`,
       hoverStyle: active === item.id ? 'background:rgba(255,255,255,.12)' : 'color:#fff;background:rgba(255,255,255,.05);',
       badgeStyle: `background:${active === item.id ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)'};color:#cad5e8;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700;flex:none;`,
-      hasCount: true,
-      d: 'M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z'
+      hasCount: true
     }));
 
     const meta = {
-      title: active === 'calendar' ? 'Calendario de Contenidos' : active === 'reports' ? 'Reportes' : 'Campañas Ads',
-      subtitle: `${month} 2026 • Editando en tiempo real`
+      title: active === 'calendar' ? 'Calendario' : active === 'production' ? 'Producción' : active === 'reports' ? 'Reportes' : 'Ads',
+      subtitle: 'Editando en tiempo real • Todos ven lo mismo'
     };
 
     const columns = [
@@ -354,7 +345,8 @@ class Component extends DCLogic {
           { value: 'Idea', label: 'Idea' },
           { value: 'Producción', label: 'Producción' },
           { value: 'Aprobación', label: 'Aprobación' },
-          { value: 'Programado', label: 'Programado' }
+          { value: 'Programado', label: 'Programado' },
+          { value: 'Publicado', label: 'Publicado' }
         ] : [],
         onChange: (e) => this.updateCell(row._id, col.key, e.target.value)
       }))
@@ -364,15 +356,12 @@ class Component extends DCLogic {
       userEmail,
       showAuth: this.state.showAuth,
       showApp: this.state.showApp,
-      month,
-      monthOptions: this.MONTHS,
-      meta,
       syncing,
       syncStatus,
-      onMonth: this.onMonth,
       onGoogleLogin: this.onGoogleLogin,
       onLogout: this.onLogout,
       onAddRow: this.onAddRow,
+      meta,
       tabMeta: { label: active.charAt(0).toUpperCase() + active.slice(1) },
       tableData: {
         count: tableRows.length,
