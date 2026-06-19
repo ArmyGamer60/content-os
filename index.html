@@ -22,6 +22,18 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
   <script>
+    // ========================================
+    // CONFIGURACIÓN (PRIMERO)
+    // ========================================
+    const firebaseConfig = {
+  apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
+  authDomain: "content-os-97b63.firebaseapp.com",
+  projectId: "content-os-97b63",
+  storageBucket: "content-os-97b63.firebasestorage.app",
+  messagingSenderId: "707594487675",
+  appId: "1:707594487675:web:fd98225e864bea56025fde"
+};
+
     console.log('📄 index.html cargó');
     
     // Esperar a que Firebase esté disponible
@@ -44,18 +56,6 @@
     }
     
     checkFirebase();
-
-    // ========================================
-    // CONFIGURACIÓN
-    // ========================================
-    const firebaseConfig = {
-  apiKey: "AIzaSyAqP6loFQOtZ1gCV7JKEcQHix3DM2T7Fxg",
-  authDomain: "content-os-97b63.firebaseapp.com",
-  projectId: "content-os-97b63",
-  storageBucket: "content-os-97b63.firebasestorage.app",
-  messagingSenderId: "707594487675",
-  appId: "1:707594487675:web:fd98225e864bea56025fde"
-};
 
     let app, auth, db;
 
