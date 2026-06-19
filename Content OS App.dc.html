@@ -92,6 +92,9 @@
           <select value="{{ year }}" onChange="{{ onYear }}" style="border:none;border-left:1px solid #e8edf3;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
             <sc-for list="{{ yearOptions }}" as="y" hint-placeholder-count="3"><option value="{{ y }}">{{ y }}</option></sc-for>
           </select>
+          <select value="{{ day }}" onChange="{{ onDay }}" title="Filtrar por día" style="border:none;border-left:1px solid #e8edf3;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
+            <sc-for list="{{ dayOptions }}" as="d" hint-placeholder-count="31"><option value="{{ d.value }}">{{ d.label }}</option></sc-for>
+          </select>
         </div>
 
         <select value="{{ clientFilter }}" onChange="{{ onClientFilter }}" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;">
@@ -687,7 +690,7 @@ class Component extends DCLogic {
   };
 
   state = {
-    active:'dashboard', month:'Junio', year:'2026', clientFilter:'Todos',
+    active:'dashboard', month:'Junio', year:'2026', day:'mes', clientFilter:'Todos',
     user:null, authReady:false,
     f1:'', f2:'', demoOn:false, calView:'table',
     ganttMode:'month', ganttAllExpanded:false, ganttExpanded:{},
@@ -1084,6 +1087,19 @@ class Component extends DCLogic {
   filteredCal(){
     let cal = this.state.calendar.filter(r=> !r.archived);
     if(this.state.clientFilter!=='Todos') cal = cal.filter(r=> r.cliente===this.state.clientFilter);
+    if(this.state.day && this.state.day!=='mes'){
+      const t=new Date(); t.setHours(0,0,0,0);
+      let lo,hi;
+      if(this.state.day==='hoy'){ lo=t; hi=t; }
+      else {
+        const dow=(t.getDay()+6)%7; // 0=Lunes
+        const mon=new Date(t); mon.setDate(t.getDate()-dow);
+        if(this.state.day==='siguiente') mon.setDate(mon.getDate()+7);
+        lo=mon; hi=new Date(mon); hi.setDate(mon.getDate()+6);
+      }
+      const loS=this.dStr(lo), hiS=this.dStr(hi);
+      cal = cal.filter(r=> r.fecha && r.fecha>=loS && r.fecha<=hiS);
+    }
     return cal;
   }
 
@@ -1261,9 +1277,22 @@ class Component extends DCLogic {
   genPhases(fecha,estado){
     if(!fecha) return {};
     const phases=this.CAL_STATES.slice();
+    const today=this.dStr(new Date());
+    // El proyecto arranca HOY y termina en la fecha de publicación; las fases
+    // se reparten proporcionalmente dentro de esa ventana y se recortan si es corta.
+    const start=(fecha<today)?fecha:today;
+    const D=this.diffDays(start,fecha)+1; // días inclusivos de la ventana (>=1)
     const total=phases.reduce((a,p)=>a+(this.PHASE_DUR[p]||1),0);
-    let cur=this.addDays(fecha,-(total-1)); const out={};
-    phases.forEach(p=>{ const dur=this.PHASE_DUR[p]||1; out[p]={s:cur,e:this.addDays(cur,dur-1)}; cur=this.addDays(cur,dur); });
+    let cum=0;
+    const bounds=phases.map(p=>{ const b=Math.round(cum/total*(D-1)); cum+=(this.PHASE_DUR[p]||1); return b; });
+    bounds.push(D-1); // la última fase termina exactamente en la fecha
+    const out={};
+    phases.forEach((p,i)=>{
+      const so=bounds[i];
+      let eo=(i===phases.length-1) ? (D-1) : (bounds[i+1]-1);
+      if(eo<so) eo=so; // ventana muy corta: la fase colapsa a un día
+      out[p]={s:this.addDays(start,so), e:this.addDays(start,eo)};
+    });
     return out;
   }
   initFases = (id)=> this.setState(s=>({calendar:s.calendar.map(r=> r._id===id ? {...r, fases:this.genPhases(r.fecha||this.dStr(new Date()), r.estado)} : r)}));
@@ -1641,10 +1670,12 @@ class Component extends DCLogic {
 
     const out = {
       navItems, meta,
-      month:this.state.month, year:this.state.year, clientFilter:this.state.clientFilter,
+      month:this.state.month, year:this.state.year, day:this.state.day, clientFilter:this.state.clientFilter,
       monthOptions:this.MONTHS, yearOptions:this.YEARS, clientOptions,
-      onMonth:(e)=>this.setState({month:e.target.value}),
-      onYear:(e)=>this.setState({year:e.target.value}),
+      dayOptions:[{value:'mes',label:'Todo el mes'},{value:'hoy',label:'Hoy'},{value:'semana',label:'Esta semana'},{value:'siguiente',label:'Siguiente semana'}],
+      onMonth:(e)=>this.setState({month:e.target.value, day:'mes'}),
+      onYear:(e)=>this.setState({year:e.target.value, day:'mes'}),
+      onDay:(e)=>this.setState({day:e.target.value}),
       onClientFilter:(e)=>this.setState({clientFilter:e.target.value}),
       onAddRow:this.addRow,
       onLogin:this.onLogin,
