@@ -743,6 +743,7 @@ class Component extends DCLogic {
       this.DATA_KEYS.forEach(k=> patch[k] = Array.isArray(d[k]) ? d[k] : []);
       this._applyingRemote = true;
       this._lastSnap = JSON.stringify(patch);
+      this._hydrated = true; // ya leímos de Firebase: a partir de aquí es seguro guardar
       this.setState(patch);
     }, err=> console.error('Error de sincronización:', err));
   };
@@ -765,6 +766,7 @@ class Component extends DCLogic {
 
   persist = ()=>{
     if(!this.docRef || !this.state.authed) return;
+    if(!this._hydrated) return; // nunca escribir antes de haber leído de Firebase
     const payload = {};
     this.DATA_KEYS.forEach(k=> payload[k] = this.state[k]||[]);
     let clean; try{ clean = JSON.parse(JSON.stringify(payload)); }catch(e){ return; }
@@ -785,7 +787,7 @@ class Component extends DCLogic {
   componentDidUpdate(){
     this.resizeAll();
     if(this._applyingRemote){ this._applyingRemote=false; return; }
-    if(!this.state.authed || !this.docRef) return;
+    if(!this.state.authed || !this.docRef || !this._hydrated) return;
     const snap = JSON.stringify(this.DATA_KEYS.reduce((o,k)=>{ o[k]=this.state[k]||[]; return o; }, {}));
     if(snap===this._lastSnap) return;
     this._lastSnap = snap;
