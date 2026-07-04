@@ -27,7 +27,23 @@
   select{appearance:none;-webkit-appearance:none}
   option{background:#fff;color:#1e293b;font-weight:500}
   input::placeholder,textarea::placeholder{color:#aeb8c6}
-  input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif}
+  /* iOS Safari: el atajo `font:inherit` en controles deja el texto en blanco. Forzamos la fuente en longhand. */
+  select,input,textarea,button,option{font-family:'Plus Jakarta Sans',sans-serif !important;-webkit-text-fill-color:currentColor}
+  select{line-height:normal !important}
+  /* ===== Responsive / móvil ===== */
+  .app-side{transition:transform .26s ease}
+  .nav-overlay{display:none !important}
+  .app-hamburger{display:none}
+  @media (max-width:860px){
+    .app-side{position:fixed !important;top:0;left:0;bottom:0;width:250px !important;z-index:70;transform:translateX(-100%);box-shadow:0 0 44px rgba(8,18,38,.42)}
+    .app-side.is-open{transform:translateX(0)}
+    .nav-overlay.is-open{display:block !important;position:fixed;inset:0;background:rgba(12,22,44,.5);z-index:60}
+    .app-hamburger{display:flex !important}
+    .app-header{height:auto !important;min-height:60px;padding:10px 14px !important;flex-wrap:wrap;gap:10px !important}
+    .app-header .hdr-title{font-size:16px !important}
+    .app-header .hdr-filters{width:100%;flex-wrap:wrap;justify-content:flex-start !important}
+    .app-header .hdr-filters select{flex:1 1 auto}
+  }
   ::-webkit-scrollbar{height:11px;width:11px}
   ::-webkit-scrollbar-thumb{background:#cdd6e2;border-radius:7px;border:3px solid #f4f6f9}
   ::-webkit-scrollbar-thumb:hover{background:#b6c1d1}
@@ -55,7 +71,9 @@
 <sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;height:100vh;width:100%;font-family:'Plus Jakarta Sans',sans-serif;color:#1e293b;background:#f4f6f9;overflow:hidden;">
 
-  <aside style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
+  <div class="nav-overlay {{ navOpenClass }}" onClick="{{ onCloseNav }}"></div>
+
+  <aside class="app-side {{ navOpenClass }}" style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
     <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;">
       <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;box-shadow:0 4px 12px rgba(37,99,235,.4);">C</div>
       <div style="line-height:1.1;">
@@ -82,13 +100,16 @@
 
   <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
 
-    <header style="height:66px;flex:none;background:#fff;border-bottom:1px solid #e8edf3;display:flex;align-items:center;padding:0 26px;gap:18px;">
+    <header class="app-header" style="height:66px;flex:none;background:#fff;border-bottom:1px solid #e8edf3;display:flex;align-items:center;padding:0 26px;gap:18px;">
+      <button class="app-hamburger" onClick="{{ onToggleNav }}" aria-label="Menú" style="align-items:center;justify-content:center;width:40px;height:40px;flex:none;border:1px solid #e8edf3;background:#fff;border-radius:10px;color:#0f1f3d;cursor:pointer;padding:0;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+      </button>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:18px;font-weight:700;letter-spacing:-.02em;color:#0f1f3d;line-height:1.15;">{{ meta.title }}</div>
+        <div class="hdr-title" style="font-size:18px;font-weight:700;letter-spacing:-.02em;color:#0f1f3d;line-height:1.15;">{{ meta.title }}</div>
         <div style="font-size:12.5px;color:#7a8aa0;font-weight:500;">{{ meta.subtitle }}</div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:9px;">
+      <div class="hdr-filters" style="display:flex;align-items:center;gap:9px;">
         <div style="display:flex;align-items:center;background:#f4f6f9;border:1px solid #e8edf3;border-radius:9px;overflow:hidden;">
           <select value="{{ month }}" onChange="{{ onMonth }}" style="border:none;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
             <sc-for list="{{ monthOptions }}" as="m" hint-placeholder-count="12"><option value="{{ m }}">{{ m }}</option></sc-for>
@@ -696,7 +717,7 @@ class Component extends DCLogic {
   state = {
     active:'dashboard', month:'Junio', year:'2026', day:'mes', clientFilter:'Todos',
     user:null, authReady:false, authed:false, codeInput:'', codeError:false,
-    f1:'', f2:'', demoOn:false, calView:'table',
+    f1:'', f2:'', demoOn:false, calView:'table', navOpen:false,
     ganttMode:'month', ganttAllExpanded:false, ganttExpanded:{},
     anGroupBy:{reports:'cliente',ads:'plataforma'}, anMetric:{reports:'alcance',ads:'gasto'}, anChart:{reports:'bar',ads:'bar'}, anFilters:{reports:{},ads:{}},
     config:[], inspo:[], prompts:[], calendar:[], production:[], approvals:[], assets:[], reports:[], ads:[]
@@ -892,7 +913,9 @@ class Component extends DCLogic {
     return m[tab] || [];
   }
 
-  setActive = (t)=> this.setState({active:t, f1:'', f2:''});
+  setActive = (t)=> this.setState({active:t, f1:'', f2:'', navOpen:false});
+  onToggleNav = ()=> this.setState(s=>({navOpen:!s.navOpen}));
+  onCloseNav = ()=> this.setState({navOpen:false});
   setCalView = (v)=> this.setState({calView:v});
   update = (tab,id,key,val)=> this.setState(s=>{
     const arr = s[tab].map(r=> r._id===id ? {...r,[key]:val} : r);
@@ -1696,6 +1719,9 @@ class Component extends DCLogic {
       codeInput:this.state.codeInput,
       codeError:this.state.codeError,
       onLogout:this.onLogout,
+      navOpenClass: this.state.navOpen ? 'is-open' : '',
+      onToggleNav: this.onToggleNav,
+      onCloseNav: this.onCloseNav,
       showAuth: !this.state.authed,
       showApp: this.state.authed,
       userEmail: 'Equipo',
