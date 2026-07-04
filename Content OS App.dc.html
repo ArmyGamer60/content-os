@@ -43,6 +43,8 @@
     .app-header .hdr-title{font-size:16px !important}
     .app-header .hdr-filters{width:100%;flex-wrap:wrap;justify-content:flex-start !important}
     .app-header .hdr-filters select{flex:1 1 auto}
+    .tbl-desktop{display:none !important}
+    .tbl-cards{display:flex !important}
   }
   ::-webkit-scrollbar{height:11px;width:11px}
   ::-webkit-scrollbar-thumb{background:#cdd6e2;border-radius:7px;border:3px solid #f4f6f9}
@@ -451,7 +453,7 @@
             <div style="font-size:12.5px;color:#9aa7ba;font-weight:600;">{{ table.count }} {{ table.countLabel }}</div>
           </div>
 
-          <div style="overflow:auto;max-height:calc(100vh - 250px);">
+          <div class="tbl-desktop" style="overflow:auto;max-height:calc(100vh - 250px);">
             <div style="min-width:{{ table.minWidth }}px;">
               <div style="display:flex;position:sticky;top:0;z-index:4;background:#f8fafc;border-bottom:1.5px solid #e8edf3;">
                 <sc-for list="{{ table.columns }}" as="col" hint-placeholder-count="8">
@@ -472,6 +474,16 @@
                           <sc-for list="{{ cell.options }}" as="opt" hint-placeholder-count="6"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
                         </select>
                       </sc-if>
+                      <sc-if value="{{ cell.isLink }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;width:100%;gap:3px;padding-right:5px;">
+                          <input type="url" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}">
+                          <sc-if value="{{ cell.hasLink }}" hint-placeholder-val="{{ false }}">
+                            <button onClick="{{ cell.onOpen }}" title="Abrir enlace" style="flex:none;width:28px;height:28px;border:1px solid #d6e4ff;background:#eef4ff;color:#2563eb;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"></path></svg>
+                            </button>
+                          </sc-if>
+                        </div>
+                      </sc-if>
                     </div>
                   </sc-for>
                   <div style="{{ table.deleteCellStyle }}">
@@ -489,6 +501,39 @@
                 <button onClick="{{ onAddRow }}" style="margin-top:14px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;">+ Agregar primera fila</button>
               </div>
             </sc-if>
+          </div>
+
+          <div class="tbl-cards" style="display:none;padding:12px;flex-direction:column;gap:12px;">
+            <sc-for list="{{ table.rows }}" as="row" hint-placeholder-count="3">
+              <div style="border:1px solid #e8edf3;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;background:#fff;box-shadow:0 1px 3px rgba(16,30,54,.05);">
+                <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="6">
+                  <div style="display:flex;flex-direction:column;gap:5px;">
+                    <span style="font-size:10.5px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;">{{ cell.label }}</span>
+                    <sc-if value="{{ cell.isAuto }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:700;color:#475569;font-variant-numeric:tabular-nums;">{{ cell.value }}</span></sc-if>
+                    <sc-if value="{{ cell.isInput }}" hint-placeholder-val="{{ false }}"><input type="{{ cell.type }}" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}"></sc-if>
+                    <sc-if value="{{ cell.isText }}" hint-placeholder-val="{{ false }}"><textarea value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" ref="{{ cell.ref }}" rows="1" style="{{ cell.cardStyle }}"></textarea></sc-if>
+                    <sc-if value="{{ cell.isSelect }}" hint-placeholder-val="{{ false }}">
+                      <select value="{{ cell.value }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}">
+                        <sc-for list="{{ cell.options }}" as="opt" hint-placeholder-count="6"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{ cell.isLink }}" hint-placeholder-val="{{ false }}">
+                      <input type="url" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}">
+                      <sc-if value="{{ cell.hasLink }}" hint-placeholder-val="{{ false }}">
+                        <button onClick="{{ cell.onOpen }}" style="align-self:flex-start;display:flex;align-items:center;gap:7px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:9px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"></path></svg>
+                          Abrir enlace
+                        </button>
+                      </sc-if>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <button onClick="{{ row.onDelete }}" style="align-self:flex-start;display:flex;align-items:center;gap:6px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:9px;padding:8px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"></path></svg>
+                  Eliminar fila
+                </button>
+              </div>
+            </sc-for>
           </div>
 
           <div style="padding:11px 18px;border-top:1px solid #eef1f5;">
@@ -1148,6 +1193,7 @@ class Component extends DCLogic {
 
   cellVM(tab,row,col,pinRight){
     const val = row[col.key] ?? '';
+    const label = col.label;
     const isText = !col.kind;
     const align = isText ? 'flex-start' : 'center';
     const isLead = col.key==='prioridad';
@@ -1155,19 +1201,37 @@ class Component extends DCLogic {
     let box = `flex:0 0 ${col.w}px;width:${col.w}px;border-right:1px solid #f1f4f8;display:flex;align-items:${align};min-height:39px;`;
     if(pin){ box += `position:sticky;right:${pinRight}px;z-index:1;background:#fff;${isLead?'box-shadow:-7px 0 9px -7px rgba(15,31,61,.16);':''}`; }
 
-    if(col.kind==='auto') return {isAuto:true,value:val,boxStyle:box};
+    if(col.kind==='auto') return {isAuto:true,value:val,boxStyle:box,label};
     const onChange = (e)=> this.update(tab,row._id,col.key,e.target.value);
     if(col.kind==='select' || col.kind==='status'){
       const opts = [{value:'',label:'—'}, ...col.opts.map(o=>({value:o,label:o}))];
-      return {isSelect:true,value:val,options:opts,onChange,style:this.selStyle({kind:col.kind,value:val}),boxStyle:box};
+      return {isSelect:true,value:val,options:opts,onChange,style:this.selStyle({kind:col.kind,value:val}),boxStyle:box,label,cardStyle:this.selStyleCard({kind:col.kind,value:val})};
     }
     if(col.kind==='input'){
-      return {isInput:true,value:val,type:col.type||'text',ph:col.ph||'',onChange,
-        style:`width:100%;height:38px;border:none;background:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 11px;outline:none;`,boxStyle:box};
+      return {isInput:true,value:val,type:col.type||'text',ph:col.ph||'',onChange,label,
+        style:`width:100%;height:38px;border:none;background:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 11px;outline:none;`,boxStyle:box,
+        cardStyle:`width:100%;height:44px;border:1px solid #e8edf3;border-radius:9px;background:#fff;font:inherit;font-size:16px;color:#1e293b;padding:0 12px;outline:none;`};
+    }
+    const isLink = (col.ph==='https://') || /(^|_)(link|url)/i.test(col.key);
+    if(isLink){
+      const has = !!(val && String(val).trim());
+      const onOpen = ()=>{ let u=String(val||'').trim(); if(!u) return; if(!/^https?:\/\//i.test(u)) u='https://'+u; window.open(u,'_blank','noopener'); };
+      return {isLink:true,value:val,ph:col.ph||'https://',onChange,onOpen,hasLink:has,label,
+        style:`flex:1;min-width:0;height:38px;border:none;background:transparent;font:inherit;font-size:13px;color:#2563eb;padding:0 4px 0 11px;outline:none;`,boxStyle:box,
+        cardStyle:`width:100%;height:44px;border:1px solid #e8edf3;border-radius:9px;background:#fff;font:inherit;font-size:16px;color:#2563eb;padding:0 12px;outline:none;`};
     }
     const onText = (e)=>{ this.autoSize(e.target); this.update(tab,row._id,col.key,e.target.value); };
-    return {isText:true,value:val,ph:col.ph||'',onChange:onText,ref:this.autoSize,
-      style:`width:100%;min-height:38px;border:none;background:transparent;font:inherit;font-size:13px;line-height:1.45;color:#1e293b;padding:9px 11px;outline:none;resize:none;overflow:hidden;display:block;white-space:pre-wrap;word-break:break-word;`,boxStyle:box};
+    return {isText:true,value:val,ph:col.ph||'',onChange:onText,ref:this.autoSize,label,
+      style:`width:100%;min-height:38px;border:none;background:transparent;font:inherit;font-size:13px;line-height:1.45;color:#1e293b;padding:9px 11px;outline:none;resize:none;overflow:hidden;display:block;white-space:pre-wrap;word-break:break-word;`,boxStyle:box,
+      cardStyle:`width:100%;min-height:44px;border:1px solid #e8edf3;border-radius:9px;background:#fff;font:inherit;font-size:16px;line-height:1.45;color:#1e293b;padding:10px 12px;outline:none;resize:none;overflow:hidden;display:block;white-space:pre-wrap;word-break:break-word;`};
+  }
+
+  selStyleCard(cell){
+    if(cell.kind==='status'){
+      const cc = (cell.value && this.COLORS[cell.value]) ? this.COLORS[cell.value] : ['#f1f5f9','#94a3b8'];
+      return `width:100%;height:44px;border:none;border-radius:9px;font:inherit;font-size:16px;font-weight:600;padding:0 30px 0 13px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;`;
+    }
+    return `width:100%;height:44px;border:1px solid #e8edf3;border-radius:9px;background-color:#fff;font:inherit;font-size:16px;color:#1e293b;padding:0 30px 0 13px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;`;
   }
 
   buildTable(tab){
