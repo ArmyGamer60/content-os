@@ -75,6 +75,20 @@
 
   <div class="nav-overlay {{ navOpenClass }}" onClick="{{ onCloseNav }}"></div>
 
+  <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseDD }}" style="position:fixed;inset:0;z-index:190;background:transparent;"></div>
+    <div style="{{ ddPanelStyle }}">
+      <sc-for list="{{ ddItems }}" as="opt" hint-placeholder-count="5">
+        <button onClick="{{ opt.onClick }}" style="{{ opt.style }}">
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ opt.label }}</span>
+          <sc-if value="{{ opt.check }}" hint-placeholder-val="{{ false }}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M20 6L9 17l-5-5"></path></svg>
+          </sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
   <aside class="app-side {{ navOpenClass }}" style="width:236px;flex:none;background:linear-gradient(180deg,#0f1f3d 0%,#0c1a33 100%);display:flex;flex-direction:column;padding:20px 14px;color:#fff;">
     <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;">
       <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;box-shadow:0 4px 12px rgba(37,99,235,.4);">C</div>
@@ -113,20 +127,12 @@
 
       <div class="hdr-filters" style="display:flex;align-items:center;gap:9px;">
         <div style="display:flex;align-items:center;background:#f4f6f9;border:1px solid #e8edf3;border-radius:9px;overflow:hidden;">
-          <select value="{{ month }}" onChange="{{ onMonth }}" style="border:none;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
-            <sc-for list="{{ monthOptions }}" as="m" hint-placeholder-count="12"><option value="{{ m }}">{{ m }}</option></sc-for>
-          </select>
-          <select value="{{ year }}" onChange="{{ onYear }}" style="border:none;border-left:1px solid #e8edf3;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
-            <sc-for list="{{ yearOptions }}" as="y" hint-placeholder-count="3"><option value="{{ y }}">{{ y }}</option></sc-for>
-          </select>
-          <select value="{{ day }}" onChange="{{ onDay }}" title="Filtrar por día" style="border:none;border-left:1px solid #e8edf3;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 10px;outline:none;cursor:pointer;">
-            <sc-for list="{{ dayOptions }}" as="d" hint-placeholder-count="31"><option value="{{ d.value }}">{{ d.label }}</option></sc-for>
-          </select>
+          <button onClick="{{ onOpenMonth }}" style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;outline:none;cursor:pointer;text-align:left;">{{ month }}</button>
+          <button onClick="{{ onOpenYear }}" style="border:none;border-left:1px solid #e8edf3;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;outline:none;cursor:pointer;text-align:left;">{{ year }}</button>
+          <button onClick="{{ onOpenDay }}" title="Filtrar por día" style="border:none;border-left:1px solid #e8edf3;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;outline:none;cursor:pointer;text-align:left;">{{ dayLabel }}</button>
         </div>
 
-        <select value="{{ clientFilter }}" onChange="{{ onClientFilter }}" style="border:1px solid #e8edf3;background:#fff;font:inherit;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 12px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;">
-          <sc-for list="{{ clientOptions }}" as="c" hint-placeholder-count="3"><option value="{{ c }}">{{ c }}</option></sc-for>
-        </select>
+        <button onClick="{{ onOpenClient }}" style="border:1px solid #e8edf3;background:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#0f1f3d;padding:9px 14px;border-radius:9px;outline:none;cursor:pointer;min-width:120px;text-align:left;">{{ clientFilter }}</button>
 
         <sc-if value="{{ showAddBtn }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ onAddRow }}" style="display:flex;align-items:center;gap:6px;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:9px 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.28);" style-hover="background:#1d4ed8;">
@@ -263,9 +269,7 @@
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
               <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;width:54px;flex:none;">Filtros</span>
               <sc-for list="{{ analytics.filters }}" as="f" hint-placeholder-count="3">
-                <select value="{{ f.value }}" onChange="{{ f.onChange }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:600;color:#475569;padding:8px 12px;border-radius:9px;outline:none;cursor:pointer;">
-                  <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="5"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
-                </select>
+                <button onClick="{{ f.onOpen }}" style="{{ f.btnStyle }}">{{ f.display }}</button>
               </sc-for>
               <sc-if value="{{ analytics.hasFilters }}" hint-placeholder-val="{{ false }}">
                 <button onClick="{{ analytics.onClear }}" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #e8edf3;border-radius:9px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#64748b;" style-hover="color:#dc2626;border-color:#fecaca;">
@@ -281,9 +285,7 @@
                 <sc-for list="{{ analytics.dims }}" as="d" hint-placeholder-count="4"><button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button></sc-for>
               </div>
               <span style="font-size:12px;color:#64748b;font-weight:600;margin-left:4px;">Métrica</span>
-              <select value="{{ analytics.metricValue }}" onChange="{{ analytics.onMetric }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:700;color:#0f1f3d;padding:8px 12px;border-radius:9px;outline:none;cursor:pointer;">
-                <sc-for list="{{ analytics.metricOptions }}" as="o" hint-placeholder-count="8"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
-              </select>
+              <button onClick="{{ analytics.onOpenMetric }}" style="{{ analytics.metricBtnStyle }}">{{ analytics.metricDisplay }}</button>
               <div style="flex:1;min-width:8px;"></div>
               <div style="display:flex;gap:6px;">
                 <sc-for list="{{ analytics.chartTypes }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onClick }}" style="{{ t.style }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>{{ t.label }}</button></sc-for>
@@ -439,9 +441,7 @@
         <div style="background:#fff;border:1px solid #eef1f5;border-radius:16px;box-shadow:0 1px 2px rgba(16,30,54,.04);overflow:hidden;display:flex;flex-direction:column;animation:fadeUp .35s ease;">
           <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #eef1f5;flex-wrap:wrap;">
             <sc-for list="{{ table.filters }}" as="f" hint-placeholder-count="2">
-              <select value="{{ f.value }}" onChange="{{ f.onChange }}" style="border:1px solid #e8edf3;background:#f8fafc;font:inherit;font-size:12.5px;font-weight:600;color:#475569;padding:7px 11px;border-radius:8px;outline:none;cursor:pointer;">
-                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="5"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
-              </select>
+              <button onClick="{{ f.onOpen }}" style="{{ f.btnStyle }}">{{ f.display }}</button>
             </sc-for>
             <sc-if value="{{ table.pinNote }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#94a3b8;font-weight:600;background:#f8fafc;border:1px solid #eef1f5;padding:6px 10px;border-radius:8px;">
@@ -470,9 +470,7 @@
                       <sc-if value="{{ cell.isInput }}" hint-placeholder-val="{{ false }}"><input type="{{ cell.type }}" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}"></sc-if>
                       <sc-if value="{{ cell.isText }}" hint-placeholder-val="{{ false }}"><textarea value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" ref="{{ cell.ref }}" rows="1" style="{{ cell.style }}"></textarea></sc-if>
                       <sc-if value="{{ cell.isSelect }}" hint-placeholder-val="{{ false }}">
-                        <select value="{{ cell.value }}" onChange="{{ cell.onChange }}" style="{{ cell.style }}">
-                          <sc-for list="{{ cell.options }}" as="opt" hint-placeholder-count="6"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-                        </select>
+                        <button onClick="{{ cell.onOpen }}" style="{{ cell.style }}">{{ cell.display }}</button>
                       </sc-if>
                       <sc-if value="{{ cell.isLink }}" hint-placeholder-val="{{ false }}">
                         <div style="display:flex;align-items:center;width:100%;gap:3px;padding-right:5px;">
@@ -513,9 +511,7 @@
                     <sc-if value="{{ cell.isInput }}" hint-placeholder-val="{{ false }}"><input type="{{ cell.type }}" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}"></sc-if>
                     <sc-if value="{{ cell.isText }}" hint-placeholder-val="{{ false }}"><textarea value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" ref="{{ cell.ref }}" rows="1" style="{{ cell.cardStyle }}"></textarea></sc-if>
                     <sc-if value="{{ cell.isSelect }}" hint-placeholder-val="{{ false }}">
-                      <select value="{{ cell.value }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}">
-                        <sc-for list="{{ cell.options }}" as="opt" hint-placeholder-count="6"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-                      </select>
+                      <button onClick="{{ cell.onOpen }}" style="{{ cell.cardStyle }}">{{ cell.display }}</button>
                     </sc-if>
                     <sc-if value="{{ cell.isLink }}" hint-placeholder-val="{{ false }}">
                       <input type="url" value="{{ cell.value }}" placeholder="{{ cell.ph }}" onChange="{{ cell.onChange }}" style="{{ cell.cardStyle }}">
@@ -571,12 +567,8 @@
                       <div style="{{ it.cardStyle }}">
                         <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em;">{{ it.platform }}</div>
                         <div style="font-size:12px;font-weight:600;color:#1e293b;line-height:1.3;">{{ it.label }}</div>
-                        <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
-                          <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-                        </select>
-                        <select value="{{ it.prioridad }}" onChange="{{ it.onPrioridad }}" style="{{ it.prioStyle }}">
-                          <sc-for list="{{ prioOptions }}" as="opt" hint-placeholder-count="3"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-                        </select>
+                        <button onClick="{{ it.onOpenEstado }}" style="{{ it.estadoStyle }}">{{ it.estadoDisplay }}</button>
+                        <button onClick="{{ it.onOpenPrio }}" style="{{ it.prioStyle }}">{{ it.prioDisplay }}</button>
                       </div>
                     </sc-for>
                   </sc-if>
@@ -638,9 +630,7 @@
                             <div style="font-size:12px;font-weight:600;color:#1e293b;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ it.label }}</div>
                           </div>
                         </div>
-                        <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
-                          <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-                        </select>
+                        <button onClick="{{ it.onOpenEstado }}" style="{{ it.estadoStyle }}">{{ it.estadoDisplay }}</button>
                       </div>
                       <div style="{{ gantt.trackStyle }}">
                         <div title="{{ it.titleAttr }}" style="{{ it.sumBarStyle }}">{{ it.label }}</div>
@@ -704,9 +694,7 @@
                 <div style="font-size:13.5px;font-weight:600;color:#1e293b;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ it.label }}</div>
                 <div style="font-size:11.5px;color:#94a3b8;font-weight:500;margin-top:2px;">{{ it.sub }}</div>
               </div>
-              <select value="{{ it.estado }}" onChange="{{ it.onEstado }}" style="{{ it.estadoStyle }}">
-                <sc-for list="{{ estadoOptions }}" as="opt" hint-placeholder-count="9"><option value="{{ opt.value }}">{{ opt.label }}</option></sc-for>
-              </select>
+              <button onClick="{{ it.onOpenEstado }}" style="{{ it.estadoStyle }}">{{ it.estadoDisplay }}</button>
               <button onClick="{{ it.onRestore }}" style="display:flex;align-items:center;gap:6px;background:#eef4ff;color:#2563eb;border:1px solid #d6e4ff;border-radius:9px;padding:8px 13px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;flex:none;" style-hover="background:#dbeafe;">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3M3 4v3.3H6.3"></path></svg>
                 Restaurar
@@ -760,7 +748,7 @@ class Component extends DCLogic {
   };
 
   state = {
-    active:'dashboard', month:'Junio', year:'2026', day:'mes', clientFilter:'Todos',
+    active:'dashboard', month:'Junio', year:'2026', day:'mes', clientFilter:'Todos', dd:null,
     user:null, authReady:false, authed:false, codeInput:'', codeError:false,
     f1:'', f2:'', demoOn:false, calView:'table', navOpen:false,
     ganttMode:'month', ganttAllExpanded:false, ganttExpanded:{},
@@ -864,8 +852,10 @@ class Component extends DCLogic {
 
   chip(val){
     const cc = this.COLORS[val] || ['#f1f5f9','#94a3b8'];
-    return `height:26px;border:none;border-radius:6px;font:inherit;font-size:11px;font-weight:700;padding:0 20px 0 9px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 6px center;appearance:none;-webkit-appearance:none;`;
+    return `height:26px;border:none;border-radius:6px;font:inherit;font-size:11px;font-weight:700;padding:0 20px 0 9px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 6px center;appearance:none;-webkit-appearance:none;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
   }
+  estadoOpts(){ return [{value:'',label:'\u2014'}, ...this.CAL_STATES.map(s=>({value:s,label:s}))]; }
+  prioOpts(){ return [{value:'',label:'\u2014'}, ...this.PRIORITY.map(s=>({value:s,label:s}))]; }
 
   schema(tab){
     const M=this.MONTHS, Y=this.YEARS;
@@ -958,9 +948,19 @@ class Component extends DCLogic {
     return m[tab] || [];
   }
 
-  setActive = (t)=> this.setState({active:t, f1:'', f2:'', navOpen:false});
+  setActive = (t)=> this.setState({active:t, f1:'', f2:'', navOpen:false, dd:null});
   onToggleNav = ()=> this.setState(s=>({navOpen:!s.navOpen}));
   onCloseNav = ()=> this.setState({navOpen:false});
+
+  // ===== Menú desplegable propio (funciona en iOS, a diferencia de <select> nativo) =====
+  openDD = (ev, options, value, onPick)=>{
+    ev.preventDefault(); ev.stopPropagation();
+    const el = ev.currentTarget;
+    const r = el.getBoundingClientRect();
+    this.setState({dd:{options, value, onPick, rect:{top:r.top, bottom:r.bottom, left:r.left, width:r.width}}});
+  };
+  closeDD = ()=> this.setState({dd:null});
+  pickDD = (v)=>{ const d=this.state.dd; if(d&&d.onPick) d.onPick(v); this.setState({dd:null}); };
   setCalView = (v)=> this.setState({calView:v});
   update = (tab,id,key,val)=> this.setState(s=>{
     const arr = s[tab].map(r=> r._id===id ? {...r,[key]:val} : r);
@@ -1043,8 +1043,9 @@ class Component extends DCLogic {
     const items=rows.map(r=>({
       _id:r._id, label:this.contentLabel(r),
       sub:`${r.plataforma||'—'} · ${r.cliente||'—'}${r.fecha?(' · '+r.fecha):''}`,
-      estado:r.estado, estadoStyle:this.chip(r.estado)+'width:152px;flex:none;',
+      estado:r.estado, estadoDisplay:r.estado||'—', estadoStyle:this.chip(r.estado)+'width:152px;flex:none;',
       onEstado:(e)=>this.update('calendar',r._id,'estado',e.target.value),
+      onOpenEstado:(e)=>this.openDD(e,this.estadoOpts(),r.estado,v=>this.update('calendar',r._id,'estado',v)),
       onRestore:()=>this.update('calendar',r._id,'estado','Aprobado'),
       onDelete:()=>this.del('calendar',r._id)
     }));
@@ -1186,9 +1187,9 @@ class Component extends DCLogic {
   selStyle(cell){
     if(cell.kind==='status'){
       const cc = (cell.value && this.COLORS[cell.value]) ? this.COLORS[cell.value] : ['#f1f5f9','#94a3b8'];
-      return `margin:4px 7px;width:calc(100% - 14px);height:30px;border:none;border-radius:7px;font:inherit;font-size:12px;font-weight:600;padding:0 22px 0 11px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;`;
+      return `margin:4px 7px;width:calc(100% - 14px);height:30px;border:none;border-radius:7px;font:inherit;font-size:12px;font-weight:600;padding:0 22px 0 11px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
     }
-    return `width:100%;height:38px;border:none;background-color:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 22px 0 11px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;`;
+    return `width:100%;height:38px;border:none;background-color:transparent;font:inherit;font-size:13px;color:#1e293b;padding:0 22px 0 11px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 8px center;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
   }
 
   cellVM(tab,row,col,pinRight){
@@ -1205,7 +1206,8 @@ class Component extends DCLogic {
     const onChange = (e)=> this.update(tab,row._id,col.key,e.target.value);
     if(col.kind==='select' || col.kind==='status'){
       const opts = [{value:'',label:'—'}, ...col.opts.map(o=>({value:o,label:o}))];
-      return {isSelect:true,value:val,options:opts,onChange,style:this.selStyle({kind:col.kind,value:val}),boxStyle:box,label,cardStyle:this.selStyleCard({kind:col.kind,value:val})};
+      const onOpen = (e)=>this.openDD(e, opts, val, (v)=>this.update(tab,row._id,col.key,v));
+      return {isSelect:true,value:val,display:(val||'—'),options:opts,onChange,onOpen,style:this.selStyle({kind:col.kind,value:val}),boxStyle:box,label,cardStyle:this.selStyleCard({kind:col.kind,value:val})};
     }
     if(col.kind==='input'){
       return {isInput:true,value:val,type:col.type||'text',ph:col.ph||'',onChange,label,
@@ -1229,9 +1231,9 @@ class Component extends DCLogic {
   selStyleCard(cell){
     if(cell.kind==='status'){
       const cc = (cell.value && this.COLORS[cell.value]) ? this.COLORS[cell.value] : ['#f1f5f9','#94a3b8'];
-      return `width:100%;height:44px;border:none;border-radius:9px;font:inherit;font-size:16px;font-weight:600;padding:0 30px 0 13px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;`;
+      return `width:100%;height:44px;border:none;border-radius:9px;font:inherit;font-size:16px;font-weight:600;padding:0 30px 0 13px;outline:none;cursor:pointer;background-color:${cc[0]};color:${cc[1]};background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
     }
-    return `width:100%;height:44px;border:1px solid #e8edf3;border-radius:9px;background-color:#fff;font:inherit;font-size:16px;color:#1e293b;padding:0 30px 0 13px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;`;
+    return `width:100%;height:44px;border:1px solid #e8edf3;border-radius:9px;background-color:#fff;font:inherit;font-size:16px;color:#1e293b;padding:0 30px 0 13px;outline:none;cursor:pointer;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 11px center;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
   }
 
   buildTable(tab){
@@ -1258,11 +1260,17 @@ class Component extends DCLogic {
     });
 
     const rowVMs = rows.map(r=>({_id:r._id, onDelete:()=>this.del(tab,r._id), cells: cols.map(c=>this.cellVM(tab,r,c, pinned[c.key]))}));
-    const filters = qf.map((q,i)=>({
-      value: i===0?this.state.f1:this.state.f2,
-      options:[{value:'',label:q.label+': Todos'}, ...q.opts.map(o=>({value:o,label:o}))],
-      onChange:(e)=> this.setState(i===0?{f1:e.target.value}:{f2:e.target.value})
-    }));
+    const filters = qf.map((q,i)=>{
+      const opts=[{value:'',label:q.label+': Todos'}, ...q.opts.map(o=>({value:o,label:o}))];
+      const cur = i===0?this.state.f1:this.state.f2;
+      const disp = (opts.find(o=>o.value===cur)||opts[0]).label;
+      return {
+        value: cur, options:opts, display:disp,
+        btnStyle:`border:1px solid #e8edf3;background-color:#f8fafc;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;color:#475569;padding:8px 28px 8px 12px;border-radius:8px;outline:none;cursor:pointer;text-align:left;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 10px center;`,
+        onChange:(e)=> this.setState(i===0?{f1:e.target.value}:{f2:e.target.value}),
+        onOpen:(e)=> this.openDD(e, opts, cur, v=> this.setState(i===0?{f1:v}:{f2:v}))
+      };
+    });
     const minW = cols.reduce((a,c)=>a+c.w,0)+46;
     return {
       columns, rows:rowVMs, filters, count:rowVMs.length,
@@ -1356,11 +1364,13 @@ class Component extends DCLogic {
         const pc = this.COLORS[rr.prioridad] ? this.COLORS[rr.prioridad][1] : '#cbd5e1';
         return {
           _id:rr._id, label:(rr.hook||rr.concepto||rr.copy||'Sin título'), platform:rr.plataforma||'—',
-          estado:rr.estado, prioridad:rr.prioridad,
+          estado:rr.estado, prioridad:rr.prioridad, estadoDisplay:rr.estado||'—', prioDisplay:rr.prioridad||'—',
           cardStyle:`background:#fff;border:1px solid #eef1f5;border-left:3px solid ${pc};border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;gap:5px;`,
           estadoStyle:this.chip(rr.estado)+'width:100%;',
           prioStyle:this.chip(rr.prioridad)+'width:100%;',
           onEstado:(e)=>this.update('calendar',rr._id,'estado',e.target.value),
+          onOpenEstado:(e)=>this.openDD(e,this.estadoOpts(),rr.estado,v=>this.update('calendar',rr._id,'estado',v)),
+          onOpenPrio:(e)=>this.openDD(e,this.prioOpts(),rr.prioridad,v=>this.update('calendar',rr._id,'prioridad',v)),
           onPrioridad:(e)=>this.update('calendar',rr._id,'prioridad',e.target.value)
         };
       });
@@ -1480,6 +1490,8 @@ class Component extends DCLogic {
         expanded, hasFases, noFases:!hasFases, phases, _sort:soff,
         onToggle:()=>this.toggleGantt(rr._id), onInit:()=>this.initFases(rr._id),
         onEstado:(e)=>this.update('calendar',rr._id,'estado',e.target.value),
+        onOpenEstado:(e)=>this.openDD(e,this.estadoOpts(),rr.estado,v=>this.update('calendar',rr._id,'estado',v)),
+        estadoDisplay:rr.estado||'—',
         chevStyle:`transition:transform .15s;transform:rotate(${expanded?90:0}deg);`,
         estadoStyle:this.chip(rr.estado)+'width:148px;margin-top:5px;',
         titleAttr:`${label} · ${rr.cliente||''} · ${rr.plataforma||''}`,
@@ -1681,16 +1693,26 @@ class Component extends DCLogic {
       {key:'donut',label:'Dona',d:'M12 3a9 9 0 109 9h-9z'},
       {key:'line',label:'Tendencia',d:'M3 17l5-6 4 3 8-9'}
     ].map(t=>({label:t.label,d:t.d,onClick:()=>this.setAn(tab,'chart',t.key),style:this.iconBtnStyle(chartType===t.key)}));
-    const filters=cfg.filters.map(f=>({
-      value:fvals[f.key]||'',
-      options:[{value:'',label:f.label+': Todos'}, ...f.opts.map(o=>({value:o,label:o}))],
-      onChange:(e)=>this.setAnFilter(tab,f.key,e.target.value)
-    }));
+    const filters=cfg.filters.map(f=>{
+      const opts=[{value:'',label:f.label+': Todos'}, ...f.opts.map(o=>({value:o,label:o}))];
+      const cur=fvals[f.key]||'';
+      const disp=(opts.find(o=>o.value===cur)||opts[0]).label;
+      return {
+        value:cur, options:opts, display:disp,
+        btnStyle:`border:1px solid #e8edf3;background-color:#f8fafc;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;color:#475569;padding:8px 28px 8px 12px;border-radius:8px;outline:none;cursor:pointer;text-align:left;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 10px center;`,
+        onChange:(e)=>this.setAnFilter(tab,f.key,e.target.value),
+        onOpen:(e)=>this.openDD(e,opts,cur,v=>this.setAnFilter(tab,f.key,v))
+      };
+    });
+    const metricOpts=cfg.metricOptions.map(m=>({value:m.key,label:m.label}));
+    const metricDisp=(metricOpts.find(m=>m.value===metricKey)||metricOpts[0]).label;
 
     return {
       filters, onClear:()=>this.clearAnFilters(tab), hasFilters:Object.values(fvals).some(Boolean),
-      dims, metricValue:metricKey, metricOptions:cfg.metricOptions.map(m=>({value:m.key,label:m.label})),
-      onMetric:(e)=>this.setAn(tab,'metric',e.target.value), chartTypes,
+      dims, metricValue:metricKey, metricOptions:metricOpts, metricDisplay:metricDisp,
+      metricBtnStyle:`border:1px solid #e8edf3;background-color:#f8fafc;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:700;color:#0f1f3d;padding:8px 28px 8px 12px;border-radius:9px;outline:none;cursor:pointer;text-align:left;background-image:${this.CHEV};background-repeat:no-repeat;background-position:right 10px center;`,
+      onMetric:(e)=>this.setAn(tab,'metric',e.target.value),
+      onOpenMetric:(e)=>this.openDD(e,metricOpts,metricKey,v=>this.setAn(tab,'metric',v)), chartTypes,
       cards:cfg.cards(rows).map(c=>({...c,hasSub:!!c.sub})),
       chartTitle:metricDef.label+' por '+dimLabel,
       empty:entries.length===0, has:entries.length>0,
@@ -1794,6 +1816,36 @@ class Component extends DCLogic {
       isCalendar, isCalGrid, isCalGantt, isArchived,
       showTable, showAddBtn
     };
+
+    // Popup del desplegable propio
+    const dd = this.state.dd;
+    if(dd){
+      const vw = (typeof window!=='undefined'?window.innerWidth:1200);
+      const vh = (typeof window!=='undefined'?window.innerHeight:800);
+      const w = Math.min(Math.max(dd.rect.width, 180), vw-24);
+      let left = Math.min(dd.rect.left, vw-w-12); left = Math.max(12, left);
+      const estH = Math.min(dd.options.length*44+10, 320);
+      const below = dd.rect.bottom+6;
+      const openUp = (below+estH > vh-12) && (dd.rect.top-6-estH > 12);
+      const top = openUp ? (dd.rect.top-6-estH) : below;
+      out.ddOpen = true;
+      out.onCloseDD = this.closeDD;
+      out.ddPanelStyle = `position:fixed;top:${top}px;left:${left}px;width:${w}px;max-height:${estH}px;overflow-y:auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 34px rgba(15,31,61,.22);z-index:200;padding:5px;`;
+      out.ddItems = dd.options.map(o=>{
+        const on = String(o.value)===String(dd.value);
+        return {label:o.label, onClick:()=>this.pickDD(o.value),
+          style:`display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;border:none;background:${on?'#eef4ff':'transparent'};color:${on?'#2563eb':'#1e293b'};font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:${on?'700':'500'};padding:11px 12px;border-radius:8px;cursor:pointer;`,
+          check:on};
+      });
+    } else { out.ddOpen = false; }
+
+    // Openers del header (menú propio)
+    const dayOpts = out.dayOptions;
+    out.dayLabel = (dayOpts.find(d=>d.value===this.state.day)||dayOpts[0]).label;
+    out.onOpenMonth = (e)=>this.openDD(e, this.MONTHS.map(m=>({value:m,label:m})), this.state.month, (v)=>this.setState({month:v,day:'mes'}));
+    out.onOpenYear = (e)=>this.openDD(e, this.YEARS.map(y=>({value:y,label:y})), this.state.year, (v)=>this.setState({year:v,day:'mes'}));
+    out.onOpenDay = (e)=>this.openDD(e, dayOpts, this.state.day, (v)=>this.setState({day:v}));
+    out.onOpenClient = (e)=>this.openDD(e, clientOptions.map(c=>({value:c,label:c})), this.state.clientFilter, (v)=>this.setState({clientFilter:v}));
 
     if(a==='dashboard') out.dash = this.buildDash();
     if(a==='reports' || a==='ads') out.analytics = this.buildAnalytics(a);
